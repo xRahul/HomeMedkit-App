@@ -1,10 +1,12 @@
 package ru.application.homemedkit.utils
 
 
+import ru.application.homemedkit.BuildConfig
+
 // ======================== Yandex ========================
 const val AUTH_URL_YANDEX = "https://oauth.yandex.ru/authorize"
-const val CLIENT_ID_YANDEX = "c9efbf4b410d45ce9ee862f9e8c63f3b"
-const val CLIENT_SECRET_YANDEX = "9780d6b550a346adbca55df4f3b5874d"
+val CLIENT_ID_YANDEX = BuildConfig.CLIENT_ID_YANDEX
+val CLIENT_SECRET_YANDEX = BuildConfig.CLIENT_SECRET_YANDEX
 const val REDIRECT_URI_YANDEX = "app://auth/auth_yandex?code={code}"
 const val TOKEN_URL_YANDEX = "https://oauth.yandex.ru/token"
 
