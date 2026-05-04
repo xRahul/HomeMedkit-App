@@ -68,7 +68,8 @@ fun MedicineMain.toMedicineList(currentMillis: Long) = MedicineList(
     formName = Formatter.formFormat(prodFormNormName),
     image = image.orEmpty(),
     inStock = prodAmount >= 0.1,
-    isExpired = expDate < currentMillis
+    isExpired = expDate < currentMillis,
+    kitIds = kitIds
 )
 
 fun MedicineState.toMedicine() = Medicine(

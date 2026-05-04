@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,14 +61,14 @@ class IntakesViewModel : BaseViewModel<IntakesState, IntakesEvent>() {
     val medicines = medicineDAO.getFlow(MedicinesQueryBuilder.selectAll)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
-    val intakes = state.flatMapLatest { query ->
-        intakeDAO.getFlow(query.search)
+    val intakes = state.map { it.search }.distinctUntilChanged().flatMapLatest { search ->
+        intakeDAO.getFlow(search)
             .map { list -> list.map(IntakeList::toIntake) }
             .flowOn(Dispatchers.Default)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
-    val schedule = state.flatMapLatest { query ->
-        alarmDAO.getFlow(query.search)
+    val schedule = state.map { it.search }.distinctUntilChanged().flatMapLatest { search ->
+        alarmDAO.getFlow(search)
             .map { list ->
                 list.groupBy { Formatter.getDateTime(it.trigger).toLocalDate().toEpochDay() }
                     .entries
@@ -77,8 +78,8 @@ class IntakesViewModel : BaseViewModel<IntakesState, IntakesEvent>() {
             .flowOn(Dispatchers.Default)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
-    val taken = state.flatMapLatest { query ->
-        takenDAO.getFlow(query.search)
+    val taken = state.map { it.search }.distinctUntilChanged().flatMapLatest { search ->
+        takenDAO.getFlow(search)
             .map { list ->
                 list.groupBy { Formatter.getDateTime(it.trigger).toLocalDate().toEpochDay() }
                     .entries

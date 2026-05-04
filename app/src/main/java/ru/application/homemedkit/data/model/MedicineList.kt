@@ -12,5 +12,6 @@ data class MedicineList(
     val formName: String,
     val image: String,
     val inStock: Boolean,
-    val isExpired: Boolean
+    val isExpired: Boolean,
+    val kitIds: Set<Long> = emptySet()
 )
