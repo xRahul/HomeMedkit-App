@@ -323,4 +323,5 @@
         <item quantity="many">Каждые %d дней</item>
         <item quantity="other">Каждые %d дня</item>
     </plurals>
+    <string name="cd_navigate_up">Navigate up</string>
 </resources>

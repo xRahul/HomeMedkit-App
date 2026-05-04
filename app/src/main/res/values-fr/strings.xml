@@ -206,4 +206,5 @@
 
     <!-- Plurals -->
 
+    <string name="cd_navigate_up">Navigate up</string>
 </resources>

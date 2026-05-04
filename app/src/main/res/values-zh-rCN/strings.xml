@@ -244,4 +244,5 @@
         <item quantity="other">一天 %d 次</item>
     </plurals>
 
+    <string name="cd_navigate_up">Navigate up</string>
 </resources>

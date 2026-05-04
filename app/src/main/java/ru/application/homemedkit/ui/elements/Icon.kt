@@ -7,11 +7,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import ru.application.homemedkit.R
 
 @Composable
-fun NavigationIcon(onNavigate: () -> Unit) = IconButton(onNavigate) { VectorIcon(R.drawable.vector_arrow_back) }
+fun NavigationIcon(onNavigate: () -> Unit) = IconButton(onNavigate) {
+    Icon(
+        imageVector = ImageVector.vectorResource(R.drawable.vector_arrow_back),
+        contentDescription = stringResource(R.string.cd_navigate_up),
+        tint = LocalContentColor.current
+    )
+}
 
 @Composable
 fun VectorIcon(

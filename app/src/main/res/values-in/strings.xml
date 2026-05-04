@@ -307,4 +307,5 @@
     <plurals name="intake_interval_in_day">
         <item quantity="other">Setiap %d hari</item>
     </plurals>
+    <string name="cd_navigate_up">Navigate up</string>
 </resources>
