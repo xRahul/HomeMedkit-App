@@ -4,6 +4,7 @@ import androidx.sqlite.db.SimpleSQLiteQuery
 import ru.application.homemedkit.data.dto.Kit
 import ru.application.homemedkit.utils.BLANK
 import ru.application.homemedkit.utils.enums.Sorting
+import ru.application.homemedkit.utils.extensions.escapeFts
 
 object MedicinesQueryBuilder {
     fun selectBy(search: String, order: Sorting, hideEmpty: Boolean, kits: Set<Kit>): SimpleSQLiteQuery {
@@ -24,7 +25,7 @@ object MedicinesQueryBuilder {
 
         if (search.isNotBlank()) {
             basicQuery.append(" AND m.id IN (SELECT rowid FROM medicines_fts WHERE medicines_fts MATCH ?)")
-            args.add("$search*")
+            args.add("${search.escapeFts()}*")
         }
 
         if (kits.isNotEmpty()) {
