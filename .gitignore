@@ -13,3 +13,8 @@ deploymentTargetDropDown.xml
 local.properties
 *.apk
 output.json
+
+# Tooling
+.jules/
+.Jules/
+GEMINI.md
