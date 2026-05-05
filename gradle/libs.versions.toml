@@ -5,6 +5,7 @@ compose-bom = "2026.03.01"
 compose-lifecycle = "2.10.0"
 google-ksp = "2.3.4"
 gradle = "9.1.0"
+junit = "5.11.4"
 kotlin = "2.3.20"
 kotlinx-serialization-json = "1.11.0"
 ktor = "3.4.2"
@@ -12,6 +13,7 @@ material-preferences = "2.2.0"
 material3 = "1.5.0-alpha17"
 navigation3 = "1.1.0"
 room = "2.8.4"
+mockk = "1.13.16"
 work-manager = "2.11.2"
 zxing-android = "3.0.2"
 
@@ -49,6 +51,10 @@ ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serializatio
 material-preferences = { group = "me.zhanghai.compose.preference", name = "preference", version.ref = "material-preferences" }
 
 zxing-android-cpp = { group = "io.github.zxing-cpp", name = "android", version.ref = "zxing-android" }
+
+junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
 [bundles]
 camera = [
