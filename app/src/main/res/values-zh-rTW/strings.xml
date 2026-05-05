@@ -112,4 +112,5 @@
         <item quantity="other">每天 %d 次</item>
     </plurals>
 
+    <string name="cd_navigate_up">向上導覽</string>
 </resources>

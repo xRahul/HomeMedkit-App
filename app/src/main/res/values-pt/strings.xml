@@ -249,4 +249,5 @@
         <item quantity="other">%d vezes por dia</item>
     </plurals>
 
+    <string name="cd_navigate_up">Navegar para cima</string>
 </resources>

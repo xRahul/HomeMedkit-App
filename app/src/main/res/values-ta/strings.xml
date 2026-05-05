@@ -204,4 +204,5 @@
         <item quantity="other">ஒரு நாளைக்கு %d முறை</item>
     </plurals>
 
+    <string name="cd_navigate_up">மேலே செல்லவும்</string>
 </resources>

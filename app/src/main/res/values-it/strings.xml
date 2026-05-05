@@ -196,4 +196,5 @@
         <item quantity="other">%d volte al giorno</item>
     </plurals>
 
+    <string name="cd_navigate_up">Spostati verso l'alto</string>
 </resources>

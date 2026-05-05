@@ -330,4 +330,5 @@
         <item quantity="many">Every %d days</item>
         <item quantity="other">Every %d days</item>
     </plurals>
+    <string name="cd_navigate_up">Navigate up</string>
 </resources>
