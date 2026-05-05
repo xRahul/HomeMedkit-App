@@ -27,6 +27,18 @@ android {
         generateLocaleConfig = true
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
+    val yandexClientId: String = System.getenv("YANDEX_CLIENT_ID") ?: ""
+    val yandexClientSecret: String = System.getenv("YANDEX_CLIENT_SECRET") ?: ""
+
+    defaultConfig {
+        buildConfigField("String", "CLIENT_ID_YANDEX", "\"$yandexClientId\"")
+        buildConfigField("String", "CLIENT_SECRET_YANDEX", "\"$yandexClientSecret\"")
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
