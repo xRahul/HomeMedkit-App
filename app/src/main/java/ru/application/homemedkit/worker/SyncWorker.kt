@@ -6,10 +6,11 @@ import android.content.Context
 import android.webkit.MimeTypeMap
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -30,47 +31,47 @@ import ru.application.homemedkit.utils.extensions.md5
 import java.io.File
 
 class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val mode = when (val name = inputData.getString(SYNC_MODE)) {
             null -> SyncMode.AUTO
             else -> SyncMode.valueOf(name)
         }
 
-        return try {
+        return@withContext try {
             when (mode) {
                 SyncMode.FORCE_DOWNLOAD -> download()
                 SyncMode.FORCE_UPLOAD -> upload(serializeData())
                 SyncMode.AUTO -> {
-                    val coroutineScope = CoroutineScope(Dispatchers.IO)
-
-                    val getRemote = coroutineScope.async {
-                        Network.Yandex.getFileMetadata("/homemeds/data/medicines.json")
-                    }
-
-                    val getLocal = coroutineScope.async {
-                        serializeData()
-                    }
-
-                    val fileRemote = getRemote.await()
-                    val fileLocal = getLocal.await()
-
-                    if (fileRemote != null) {
-                        val localMd5 = fileLocal.md5()
-                        val remoteMd5 = fileRemote.md5
-
-                        if (localMd5.equals(remoteMd5, ignoreCase = true)) {
-                            fileLocal.delete()
-                            return Result.success()
+                    coroutineScope {
+                        val getRemote = async {
+                            Network.Yandex.getFileMetadata("/homemeds/data/medicines.json")
                         }
 
-                        if (fileRemote.modified > Preferences.lastSyncMillis) {
-                            fileLocal.delete()
-                            download()
+                        val getLocal = async {
+                            serializeData()
+                        }
+
+                        val fileRemote = getRemote.await()
+                        val fileLocal = getLocal.await()
+
+                        if (fileRemote != null) {
+                            val localMd5 = fileLocal.md5()
+                            val remoteMd5 = fileRemote.md5
+
+                            if (localMd5.equals(remoteMd5, ignoreCase = true)) {
+                                fileLocal.delete()
+                                return@coroutineScope
+                            }
+
+                            if (fileRemote.modified > Preferences.lastSyncMillis) {
+                                fileLocal.delete()
+                                download()
+                            } else {
+                                upload(fileLocal)
+                            }
                         } else {
                             upload(fileLocal)
                         }
-                    } else {
-                        upload(fileLocal)
                     }
                 }
             }
@@ -121,7 +122,9 @@ class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWork
         } catch (e: IOException) {
             throw Exception(e)
         } finally {
-            file.delete()
+            withContext(NonCancellable) {
+                file.delete()
+            }
         }
     }
 
@@ -207,7 +210,9 @@ class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWork
             } catch (e: Exception) {
                 throw e
             } finally {
-                tempFile.delete()
+                withContext(NonCancellable) {
+                    tempFile.delete()
+                }
             }
         }
 
@@ -221,7 +226,7 @@ class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWork
         downloadImages(images)
     }
 
-    private suspend fun serializeData() = withContext(Dispatchers.IO) {
+    private suspend fun serializeData(): File {
         val database = MedicineDatabase.getInstance(context)
         val file = File(context.cacheDir, "medicines.json")
         val medicines = database.medicineDAO().getAll()
@@ -238,6 +243,6 @@ class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWork
             throw e
         }
 
-        return@withContext file
+        return file
     }
 }
