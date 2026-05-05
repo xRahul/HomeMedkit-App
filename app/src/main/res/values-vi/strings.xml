@@ -120,5 +120,5 @@
         <item quantity="other">%d lần một ngày</item>
     </plurals>
 
-    <string name="cd_navigate_up">Navigate up</string>
+    <string name="cd_navigate_up">Điều hướng lên</string>
 </resources>

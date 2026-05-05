@@ -305,5 +305,5 @@
         <item quantity="one">%d tag</item>
         <item quantity="other">Alle %d Tage</item>
     </plurals>
-    <string name="cd_navigate_up">Navigate up</string>
+    <string name="cd_navigate_up">Nach oben navigieren</string>
 </resources>

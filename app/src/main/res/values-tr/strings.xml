@@ -240,5 +240,5 @@
         <item quantity="other">Günde %d kez</item>
     </plurals>
 
-    <string name="cd_navigate_up">Navigate up</string>
+    <string name="cd_navigate_up">Yukarı git</string>
 </resources>
