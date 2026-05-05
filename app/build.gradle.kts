@@ -40,6 +40,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
 }
 
 room {
@@ -83,4 +89,9 @@ dependencies {
 
     // ==================== Coil ====================
     implementation(libs.coil.compose)
+
+    // ==================== Test ====================
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.mockk)
 }
