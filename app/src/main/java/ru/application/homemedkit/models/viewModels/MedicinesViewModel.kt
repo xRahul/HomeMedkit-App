@@ -110,7 +110,8 @@ class MedicinesViewModel : BaseViewModel<MedicinesState, Unit>() {
         }
 
         result.sortedBy { it.kit.position }
-    }.flowOn(Dispatchers.Default)
+    }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     override fun onEvent(event: Unit) = Unit
