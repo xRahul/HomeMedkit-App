@@ -1,3 +1,0 @@
-## 2024-05-04 - StateFlow combine and map allocations
-**Learning:** In ViewModels, if a `StateFlow` maps UI state directly to database queries or heavy formatting without isolating specific fields via `distinctUntilChanged()`, transient UI changes (like toggling an edit mode or opening a dialog) will trigger the entire heavy flow calculation pipeline over again, blocking the UI thread or wasting CPU.
-**Action:** Always constrain query drivers and map pipelines by extracting properties that actually change the result (e.g. `state.map { it.search }.distinctUntilChanged()`) instead of using `state.flatMapLatest` directly. When combining derived UI collections, pass pre-mapped properties where possible if only the grouping/filtering changes.

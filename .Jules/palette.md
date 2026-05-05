@@ -1,3 +1,0 @@
-## 2024-05-04 - Screen Reader Labels for Jetpack Compose Navigation Icons
-**Learning:** In this Android Jetpack Compose app, custom vector wrappers (like `VectorIcon`) are often used to simplify rendering standard drawables, but they frequently hardcode `contentDescription = null`, silencing screen readers (TalkBack) entirely for critical navigation elements.
-**Action:** Always check custom Icon wrappers for hardcoded null content descriptions and refactor critical interactable buttons (like `NavigationIcon`) to use the standard Material `Icon` component with an explicit `stringResource` when an a11y label is required.
