@@ -170,7 +170,7 @@ fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (
     }
 
     val duplicate = remember(state) {
-        if (state.technical.verified || state.technical.verified) {
+        if (state.technical.verified) {
             null
         } else {
             { model.onEvent(MedicineEvent.MakeDuplicate) }
