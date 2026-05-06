@@ -16,16 +16,22 @@ inline fun <reified E : Enum<E>> SharedPreferences.getEnum(key: String, defaultV
 inline fun <reified E : Enum<E>> SharedPreferences.getEnumFlow(key: String, defaultValue: E) =
     flow(key) { getEnum(key, defaultValue) }
 
-inline fun <reified T> SharedPreferences.safeGetValue(key: String, defaultValue: T) =
-    when (defaultValue) {
-        is Boolean -> runCatching { getBoolean(key, defaultValue as Boolean) as T }.getOrDefault(defaultValue)
-        is Int -> runCatching { getInt(key, defaultValue as Int) as T }.getOrDefault(defaultValue)
-        is Long -> runCatching { getLong(key, defaultValue as Long) as T }.getOrDefault(defaultValue)
-        is Float -> runCatching { getFloat(key, defaultValue as Float) as T }.getOrDefault(defaultValue)
-        is String -> runCatching { getString(key, defaultValue as String) as T }.getOrDefault(defaultValue)
-        is Set<*> -> runCatching { getStringSet(key, defaultValue as Set<String>) as T }.getOrDefault(defaultValue)
-        else -> run { edit { remove(key) } }.let { defaultValue }
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> SharedPreferences.safeGetValue(key: String, defaultValue: T): T {
+    val result: Any? = when (defaultValue) {
+        is Boolean -> getBoolean(key, defaultValue)
+        is Int -> getInt(key, defaultValue)
+        is Long -> getLong(key, defaultValue)
+        is Float -> getFloat(key, defaultValue)
+        is String -> getString(key, defaultValue)
+        is Set<*> -> getStringSet(key, defaultValue.filterIsInstance<String>().toSet())
+        else -> {
+            edit { remove(key) }
+            null
+        }
     }
+    return (result as? T) ?: defaultValue
+}
 
 inline fun <reified T> SharedPreferences.getFlow(key: String, defaultValue: T) = flow(key) {
     safeGetValue(key, defaultValue)

@@ -2,6 +2,7 @@ package ru.application.homemedkit.data.dto
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import ru.application.homemedkit.utils.BLANK
 
@@ -15,6 +16,9 @@ import ru.application.homemedkit.utils.BLANK
             onUpdate = ForeignKey.CASCADE,
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index(value = ["intakeId"])
     ]
 )
 data class IntakeTime(

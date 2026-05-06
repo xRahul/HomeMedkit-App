@@ -2,6 +2,7 @@ package ru.application.homemedkit.data.dto
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 
 @Entity(
     tableName = "medicines_kits",
@@ -21,6 +22,9 @@ import androidx.room.ForeignKey
             onUpdate = ForeignKey.CASCADE,
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index(value = ["kitId"])
     ]
 )
 data class MedicineKit(

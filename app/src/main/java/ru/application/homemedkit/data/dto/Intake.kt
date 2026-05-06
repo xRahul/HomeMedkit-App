@@ -3,6 +3,7 @@ package ru.application.homemedkit.data.dto
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import ru.application.homemedkit.utils.BLANK
 import ru.application.homemedkit.utils.enums.SchemaType
@@ -17,6 +18,9 @@ import ru.application.homemedkit.utils.enums.SchemaType
             onUpdate = CASCADE,
             onDelete = CASCADE
         )
+    ],
+    indices = [
+        Index(value = ["medicineId"])
     ]
 )
 data class Intake(
