@@ -27,6 +27,8 @@ data class Medicine(
     val recommendations: String = BLANK,
     val storageConditions: String = BLANK,
     val comment: String = BLANK,
+    @ColumnInfo(defaultValue = "")
+    val salts: String = BLANK,
     val scanned: Boolean = false,
     val verified: Boolean = false
 )

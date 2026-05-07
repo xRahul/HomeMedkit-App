@@ -39,6 +39,7 @@ fun MedicineFull.toState() = MedicineState(
     recommendations = recommendations,
     storageConditions = storageConditions,
     comment = comment,
+    salts = salts,
     images = images.sortedBy(Image::position).map(Image::image),
     technical = TechnicalState(
         scanned = scanned,
@@ -87,6 +88,7 @@ fun MedicineState.toMedicine() = Medicine(
     recommendations = recommendations,
     storageConditions = storageConditions,
     comment = comment,
+    salts = salts,
     scanned = code.isNotBlank(),
     verified = technical.verified
 )

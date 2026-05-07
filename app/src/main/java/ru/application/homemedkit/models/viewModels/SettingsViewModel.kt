@@ -13,6 +13,7 @@ import ru.application.homemedkit.utils.di.Preferences
 import ru.application.homemedkit.utils.enums.Page
 import ru.application.homemedkit.utils.enums.Sorting
 import ru.application.homemedkit.utils.enums.Theme
+import ru.application.homemedkit.utils.enums.AiMode
 
 class SettingsViewModel : BaseViewModel<SettingsState, SettingsEvent>() {
     override fun initState() = SettingsState()
@@ -32,6 +33,24 @@ class SettingsViewModel : BaseViewModel<SettingsState, SettingsEvent>() {
     val sortingType = Preferences.sortingOrderFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Sorting.IN_NAME)
 
     val checkExpiration = Preferences.checkExpirationFlow.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val useAi = Preferences.useAiFlow.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val aiMode = Preferences.aiModeFlow.stateIn(viewModelScope, SharingStarted.Eagerly, AiMode.ML_KIT)
+
+    val geminiApiKey = Preferences.geminiApiKey
+
+    fun setUseAi(value: Boolean) {
+        Preferences.setUseAi(value)
+    }
+
+    fun setAiMode(value: AiMode) {
+        Preferences.setAiMode(value)
+    }
+
+    fun setGeminiApiKey(value: String) {
+        Preferences.setGeminiApiKey(value)
+    }
 
     val theme = Preferences.theme.stateIn(viewModelScope, SharingStarted.Eagerly, Theme.SYSTEM)
 

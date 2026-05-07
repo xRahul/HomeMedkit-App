@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 35,
-    "identityHash": "ef9d2ec963ac819c25b611e7214766eb",
+    "version": 36,
+    "identityHash": "30dda970af95086e765d3429323a2c0b",
     "entities": [
       {
         "tableName": "medicines",
@@ -128,7 +128,7 @@
       },
       {
         "tableName": "medicines_fts",
-        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`productName` TEXT NOT NULL, `nameAlias` TEXT NOT NULL, `prodFormNormName` TEXT NOT NULL, `structure` TEXT NOT NULL, `phKinetics` TEXT NOT NULL, `comment` TEXT NOT NULL, tokenize=unicode61, content=`medicines`, prefix=`1,2,3`)",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`productName` TEXT NOT NULL, `nameAlias` TEXT NOT NULL, `prodFormNormName` TEXT NOT NULL, `structure` TEXT NOT NULL, `phKinetics` TEXT NOT NULL, `comment` TEXT NOT NULL, `salts` TEXT NOT NULL, tokenize=unicode61, content=`medicines`, prefix=`1,2,3`)",
         "fields": [
           {
             "fieldPath": "productName",
@@ -165,6 +165,12 @@
             "columnName": "comment",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "salts",
+            "columnName": "salts",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -189,8 +195,8 @@
         "contentSyncTriggers": [
           "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_medicines_fts_BEFORE_UPDATE BEFORE UPDATE ON `medicines` BEGIN DELETE FROM `medicines_fts` WHERE `docid`=OLD.`rowid`; END",
           "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_medicines_fts_BEFORE_DELETE BEFORE DELETE ON `medicines` BEGIN DELETE FROM `medicines_fts` WHERE `docid`=OLD.`rowid`; END",
-          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_medicines_fts_AFTER_UPDATE AFTER UPDATE ON `medicines` BEGIN INSERT INTO `medicines_fts`(`docid`, `productName`, `nameAlias`, `prodFormNormName`, `structure`, `phKinetics`, `comment`) VALUES (NEW.`rowid`, NEW.`productName`, NEW.`nameAlias`, NEW.`prodFormNormName`, NEW.`structure`, NEW.`phKinetics`, NEW.`comment`); END",
-          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_medicines_fts_AFTER_INSERT AFTER INSERT ON `medicines` BEGIN INSERT INTO `medicines_fts`(`docid`, `productName`, `nameAlias`, `prodFormNormName`, `structure`, `phKinetics`, `comment`) VALUES (NEW.`rowid`, NEW.`productName`, NEW.`nameAlias`, NEW.`prodFormNormName`, NEW.`structure`, NEW.`phKinetics`, NEW.`comment`); END"
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_medicines_fts_AFTER_UPDATE AFTER UPDATE ON `medicines` BEGIN INSERT INTO `medicines_fts`(`docid`, `productName`, `nameAlias`, `prodFormNormName`, `structure`, `phKinetics`, `comment`, `salts`) VALUES (NEW.`rowid`, NEW.`productName`, NEW.`nameAlias`, NEW.`prodFormNormName`, NEW.`structure`, NEW.`phKinetics`, NEW.`comment`, NEW.`salts`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_medicines_fts_AFTER_INSERT AFTER INSERT ON `medicines` BEGIN INSERT INTO `medicines_fts`(`docid`, `productName`, `nameAlias`, `prodFormNormName`, `structure`, `phKinetics`, `comment`, `salts`) VALUES (NEW.`rowid`, NEW.`productName`, NEW.`nameAlias`, NEW.`prodFormNormName`, NEW.`structure`, NEW.`phKinetics`, NEW.`comment`, NEW.`salts`); END"
         ]
       },
       {
@@ -659,7 +665,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ef9d2ec963ac819c25b611e7214766eb')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '30dda970af95086e765d3429323a2c0b')"
     ]
   }
 }

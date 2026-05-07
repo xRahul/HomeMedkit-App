@@ -31,6 +31,15 @@
     <string name="preference_auto_sync_summary_enabled">Enabled when opening application</string>
     <string name="preference_auto_sync_summary_disabled">Disabled when opening application</string>
 
+        <string name="preference_ai_settings">AI Settings</string>
+    <string name="preference_use_ai">Use AI to parse photos</string>
+    <string name="preference_ai_mode">AI Mode</string>
+    <string name="preference_gemini_api_key">Gemini API Key</string>
+    <string name="ai_mode_ml_kit">On-device (ML Kit)</string>
+    <string name="ai_mode_gemini">Cloud (Gemini)</string>
+    <string name="text_ai_processing">Processing image with AI...</string>
+    <string name="text_ai_error">Failed to parse image.</string>
+
     <!-- Pages -->
     <string name="page_medications">Medications</string>
     <string name="page_intake_list">Intake (list)</string>
@@ -78,6 +87,7 @@
     <string name="text_package_opened_date">Package opened</string>
     <string name="text_indications_for_use">Usage indications</string>
     <string name="text_medicine_comment">Comment</string>
+    <string name="text_medicine_salts">Salts (Active Ingredients)</string>
     <string name="text_medicine_composition">Composition</string>
     <string name="text_medicine_description">Description</string>
     <string name="text_medicine_display_name">Display name</string>

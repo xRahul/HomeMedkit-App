@@ -18,6 +18,12 @@ android {
         versionName = "1.9.6"
     }
 
+    packaging {
+        resources {
+            excludes += "META-INF/DEPENDENCIES"
+        }
+    }
+
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
@@ -77,6 +83,15 @@ dependencies {
     // ==================== Scanner ====================
     implementation(libs.bundles.camera)
     implementation(libs.zxing.android.cpp)
+
+    // ==================== AI and ML ====================
+    implementation(libs.gemini)
+    implementation(libs.play.services.auth)
+    implementation("com.google.guava:guava:31.1-android")
+    implementation("com.google.api-client:google-api-client-android:1.26.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev136-1.25.0")
+    implementation(libs.mlkit.text.recognition)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // ==================== Settings ====================
     implementation(libs.material.preferences)

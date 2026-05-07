@@ -27,7 +27,7 @@ import ru.application.homemedkit.data.dto.MedicineKit
 import ru.application.homemedkit.utils.DATABASE_NAME
 
 @Database(
-    version = 35,
+    version = 36,
     entities = [
         Medicine::class,
         MedicineFTS::class,
@@ -66,7 +66,7 @@ abstract class MedicineDatabase : RoomDatabase() {
                 klass = MedicineDatabase::class.java,
                 name = DATABASE_NAME
             )
-                .addMigrations(MIGRATION_1_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_33_34, MIGRATION_34_35)
+                .addMigrations(MIGRATION_1_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_33_34, MIGRATION_34_35, MIGRATION_35_36)
                 .setQueryCoroutineContext(Dispatchers.IO)
                 .build()
                 .also { INSTANCE = it }
@@ -114,6 +114,15 @@ abstract class MedicineDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DROP TABLE IF EXISTS medicines_fts")
                 db.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS `medicines_fts` USING FTS4(`productName` TEXT NOT NULL, `nameAlias` TEXT NOT NULL, `prodFormNormName` TEXT NOT NULL, `structure` TEXT NOT NULL, `phKinetics` TEXT NOT NULL, `comment` TEXT NOT NULL, content=`medicines`)")
+                db.execSQL("INSERT INTO medicines_fts(medicines_fts) VALUES('rebuild')")
+            }
+        }
+
+        private val MIGRATION_35_36 = object : Migration(35, 36) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medicines ADD COLUMN salts TEXT NOT NULL DEFAULT ''")
+                db.execSQL("DROP TABLE IF EXISTS medicines_fts")
+                db.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS `medicines_fts` USING FTS4(`productName` TEXT NOT NULL, `nameAlias` TEXT NOT NULL, `prodFormNormName` TEXT NOT NULL, `structure` TEXT NOT NULL, `phKinetics` TEXT NOT NULL, `comment` TEXT NOT NULL, `salts` TEXT NOT NULL, content=`medicines`, prefix=`1,2,3`, tokenize=unicode61)")
                 db.execSQL("INSERT INTO medicines_fts(medicines_fts) VALUES('rebuild')")
             }
         }

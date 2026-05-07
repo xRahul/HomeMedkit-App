@@ -16,5 +16,6 @@ data class MedicineFTS(
     val prodFormNormName: String,
     val structure: String,
     val phKinetics: String,
-    val comment: String
+    val comment: String,
+    val salts: String
 )

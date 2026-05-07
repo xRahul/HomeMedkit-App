@@ -16,6 +16,7 @@ sealed interface MedicineEvent {
     data class SetAmount(val amount: String) : MedicineEvent
     data class SetPhKinetics(val phKinetics: String) : MedicineEvent
     data class SetComment(val comment: String) : MedicineEvent
+    data class SetSalts(val salts: String) : MedicineEvent
 
     data object ClearPackageDate : MedicineEvent
 
@@ -24,6 +25,7 @@ sealed interface MedicineEvent {
 
     data class SetIcon(val icon: String) : MedicineEvent
     data class SetImage(val fileName: String?) : MedicineEvent
+    data class ProcessImageWithAi(val context: android.content.Context, val uri: android.net.Uri, val useAi: Boolean, val aiMode: ru.application.homemedkit.utils.enums.AiMode, val apiKey: String) : MedicineEvent
     data class RemoveImage(val image: String) : MedicineEvent
 
     data class OnImageReodering(val fromIndex: Int, val toIndex: Int) : MedicineEvent

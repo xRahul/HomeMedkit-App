@@ -23,6 +23,7 @@ data class MedicineFull(
     val recommendations: String,
     val storageConditions: String,
     val comment: String,
+    val salts: String,
     val scanned: Boolean,
     val verified: Boolean,
 

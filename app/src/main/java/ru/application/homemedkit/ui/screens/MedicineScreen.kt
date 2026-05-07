@@ -216,6 +216,23 @@ fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (
                     }
                 },
                 actions = {
+                    val useAi = ru.application.homemedkit.utils.di.Preferences.useAi
+                    val aiMode = ru.application.homemedkit.utils.di.Preferences.aiMode
+                    if (useAi && aiMode == ru.application.homemedkit.utils.enums.AiMode.GEMINI && state.images.isNotEmpty() && state.adding) {
+                        IconButton(onClick = {
+                            val context = context
+                            model.onEvent(MedicineEvent.ProcessImageWithAi(
+                                context,
+                                android.net.Uri.fromFile(java.io.File(context.filesDir, state.images.first())),
+                                true,
+                                ru.application.homemedkit.utils.enums.AiMode.GEMINI,
+                                ru.application.homemedkit.utils.di.Preferences.geminiApiKey
+                            ))
+                        }) {
+                            VectorIcon(R.drawable.vector_refresh, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
                     TopBarActions(
                         isDefault = state.default,
                         setModifiable = model::setEditing,
@@ -388,6 +405,21 @@ fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (
                                 title = stringResource(R.string.text_medicine_comment),
                                 value = state.comment,
                                 onValueChange = { model.onEvent(MedicineEvent.SetComment(it)) },
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Sentences,
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Default
+                                )
+                            )
+                        }
+                    }
+                    if (state.adding || state.editing || state.salts.isNotEmpty()) {
+                        item {
+                            InfoTextField(
+                                isEditing = !state.default,
+                                title = stringResource(R.string.text_medicine_salts),
+                                value = state.salts,
+                                onValueChange = { model.onEvent(MedicineEvent.SetSalts(it)) },
                                 keyboardOptions = KeyboardOptions(
                                     capitalization = KeyboardCapitalization.Sentences,
                                     keyboardType = KeyboardType.Text,
@@ -1052,6 +1084,12 @@ private fun CameraPhotoPreview(scope: CoroutineScope, event: (MedicineEvent) -> 
                         }
 
                         event(MedicineEvent.SetImage(image))
+                        val useAi = ru.application.homemedkit.utils.di.Preferences.useAi
+                        if (useAi && image != null) {
+                            val ctx = ru.application.homemedkit.HomeMeds.app.preferences.context
+                            event(MedicineEvent.ProcessImageWithAi(ctx, android.net.Uri.fromFile(java.io.File(ctx.filesDir, image)), useAi, ru.application.homemedkit.utils.enums.AiMode.ML_KIT, ru.application.homemedkit.utils.di.Preferences.geminiApiKey))
+                        }
+
                     }
                 }
         ) {

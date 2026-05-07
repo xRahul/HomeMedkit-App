@@ -82,6 +82,7 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.preference
 import me.zhanghai.compose.preference.preferenceCategory
 import me.zhanghai.compose.preference.switchPreference
+import me.zhanghai.compose.preference.textFieldPreference
 import me.zhanghai.compose.preference.twoTargetSwitchPreference
 import ru.application.homemedkit.R
 import ru.application.homemedkit.data.dto.Kit
@@ -105,6 +106,10 @@ import ru.application.homemedkit.utils.KEY_AUTOLAUNCH
 import ru.application.homemedkit.utils.KEY_AUTO_CHANGE_INTAKE_WHEN_TIME_CHANGE
 import ru.application.homemedkit.utils.KEY_AUTO_SYNC_ENABLED
 import ru.application.homemedkit.utils.KEY_BASIC_SETTINGS
+import ru.application.homemedkit.utils.KEY_AI_SETTINGS
+import ru.application.homemedkit.utils.KEY_USE_AI
+import ru.application.homemedkit.utils.KEY_AI_MODE
+import ru.application.homemedkit.utils.KEY_GEMINI_API_KEY
 import ru.application.homemedkit.utils.KEY_CLEAR_CACHE
 import ru.application.homemedkit.utils.KEY_CONFIRM_EXIT
 import ru.application.homemedkit.utils.KEY_DOWNLOAD
@@ -119,6 +124,7 @@ import ru.application.homemedkit.utils.di.AlarmManager
 import ru.application.homemedkit.utils.di.Preferences
 import ru.application.homemedkit.utils.enums.Page
 import ru.application.homemedkit.utils.enums.Sorting
+import ru.application.homemedkit.utils.enums.AiMode
 import ru.application.homemedkit.utils.enums.Theme
 import ru.application.homemedkit.utils.extensions.canScheduleExactAlarms
 import ru.application.homemedkit.utils.extensions.drawHorizontalDivider
@@ -158,6 +164,39 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
 
     ProvidePreferenceLocals {
         LazyColumn {
+            preferenceCategory(
+                key = KEY_AI_SETTINGS,
+                title = { Text(stringResource(R.string.preference_ai_settings)) }
+            )
+
+            switchPreference(
+                key = KEY_USE_AI,
+                defaultValue = false,
+                title = { Text(stringResource(R.string.preference_use_ai)) },
+                summary = { Text(stringResource(if (it) R.string.text_on else R.string.text_off)) }
+            )
+
+            val useAi = model.useAi.value
+            if (useAi) {
+                preference(
+                    key = KEY_AI_MODE,
+                    title = { Text(stringResource(R.string.preference_ai_mode)) },
+                    summary = {
+                        val mode = model.aiMode.value
+                        Text(stringResource(mode.title))
+                    }
+                )
+
+                val aiMode = model.aiMode.value
+                if (aiMode == AiMode.GEMINI) {
+                    textFieldPreference(
+                        key = KEY_GEMINI_API_KEY,
+                        defaultValue = model.geminiApiKey,
+                        title = { Text(stringResource(R.string.preference_gemini_api_key)) },
+                        textToValue = { it }
+                    )
+                }
+            }
             preferenceCategory(
                 key = KEY_BASIC_SETTINGS,
                 title = { Text(stringResource(R.string.preference_basic_settings)) }

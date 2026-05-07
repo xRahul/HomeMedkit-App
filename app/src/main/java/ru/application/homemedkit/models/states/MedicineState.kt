@@ -30,6 +30,7 @@ data class MedicineState(
     val recommendations: String = BLANK,
     val storageConditions: String = BLANK,
     val comment: String = BLANK,
+    val salts: String = BLANK,
     val images: List<String> = emptyList(),
     val technical: TechnicalState = TechnicalState(),
     val imageEditing: ImageEditing = ImageEditing.ADDING,

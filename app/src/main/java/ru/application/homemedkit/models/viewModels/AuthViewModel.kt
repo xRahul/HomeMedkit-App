@@ -124,6 +124,12 @@ class AuthViewModel(private val code: String?) : BaseViewModel<AuthStatus, Unit>
         }
     }
 
+    fun loginGoogle(account: android.accounts.Account) {
+        Preferences.setAuthYandex(false)
+        updateState { AuthStatus.Success }
+        syncYandex(ru.application.homemedkit.utils.enums.SyncMode.AUTO)
+    }
+
     fun logoutYandex() {
         viewModelScope.launch {
             updateState { AuthStatus.Loading }
