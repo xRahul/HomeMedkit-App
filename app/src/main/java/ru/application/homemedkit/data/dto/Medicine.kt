@@ -14,6 +14,7 @@ data class Medicine(
     val id: Long = 0L,
     val cis: String = BLANK,
     val productName: String = BLANK,
+    val salts: String = BLANK,
     val nameAlias: String = BLANK,
     val expDate: Long = -1L,
     @ColumnInfo(defaultValue = "-1")

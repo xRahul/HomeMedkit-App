@@ -76,6 +76,7 @@ fun MedicineState.toMedicine() = Medicine(
     id = id,
     cis = code,
     productName = productName,
+    salts = salts,
     nameAlias = nameAlias,
     expDate = expDate,
     packageOpenedDate = dateOpened,

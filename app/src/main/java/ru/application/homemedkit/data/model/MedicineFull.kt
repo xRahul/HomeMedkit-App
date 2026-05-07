@@ -11,6 +11,7 @@ data class MedicineFull(
     val id: Long,
     val cis: String,
     val productName: String,
+    val salts: String,
     val nameAlias: String,
     val expDate: Long,
     val packageOpenedDate: Long,

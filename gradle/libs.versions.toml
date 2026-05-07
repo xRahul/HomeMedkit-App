@@ -17,6 +17,14 @@ room = "2.8.4"
 mockk = "1.13.16"
 work-manager = "2.11.2"
 zxing-android = "3.0.2"
+mlkit-text-recognition = "16.0.1"
+generativeai = "0.9.0"
+play-services-auth = "21.3.0"
+google-api-services-drive = "v3-rev20241027-2.0.0"
+google-api-client-android = "1.35.0"
+guava = "33.4.0-android"
+kotlinx-coroutines-play-services = "1.9.0"
+kotlinx-coroutines-test = "1.9.0"
 
 [libraries]
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camera2" }
@@ -56,6 +64,15 @@ ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serializatio
 material-preferences = { group = "me.zhanghai.compose.preference", name = "preference", version.ref = "material-preferences" }
 
 zxing-android-cpp = { group = "io.github.zxing-cpp", name = "android", version.ref = "zxing-android" }
+
+google-mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkit-text-recognition" }
+google-ai-client-generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "play-services-auth" }
+google-api-services-drive = { group = "com.google.apis", name = "google-api-services-drive", version.ref = "google-api-services-drive" }
+google-api-client-android = { group = "com.google.api-client", name = "google-api-client-android", version.ref = "google-api-client-android" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinx-coroutines-play-services" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
 
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }

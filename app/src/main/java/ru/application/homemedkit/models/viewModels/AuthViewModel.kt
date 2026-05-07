@@ -118,7 +118,11 @@ class AuthViewModel(
         viewModelScope.launch {
             updateState { AuthStatus.Loading }
 
-            val isSuccess = Network.Yandex.checkConnection()
+            val isSuccess = if (preferences.authIsYandex) {
+                Network.Yandex.checkConnection()
+            } else {
+                ru.application.homemedkit.network.GoogleDriveApi.isReady()
+            }
 
             if (isSuccess) {
                 updateState { AuthStatus.Success }
@@ -126,6 +130,12 @@ class AuthViewModel(
                 updateState { AuthStatus.Error }
             }
         }
+    }
+
+    fun loginGoogle(account: android.accounts.Account) {
+        preferences.setAuthYandex(false)
+        updateState { AuthStatus.Success }
+        syncYandex(SyncMode.AUTO)
     }
 
     fun logoutYandex() {

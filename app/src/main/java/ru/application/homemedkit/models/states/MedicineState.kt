@@ -15,6 +15,7 @@ data class MedicineState(
     val kits: Set<Kit> = emptySet(),
     val code: String = BLANK,
     val productName: String = BLANK,
+    val salts: String = BLANK,
     @StringRes val productNameError: Int? = null,
     val nameAlias: String = BLANK,
     val expDate: Long = -1L,

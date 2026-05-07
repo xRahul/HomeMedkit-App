@@ -274,8 +274,62 @@ class MedicineViewModel(
             is MedicineEvent.SetDoseType -> updateState { it.copy(doseType = event.type) }
             is MedicineEvent.SetAmount -> updateState { it.copy(prodAmount = event.amount) }
             is MedicineEvent.SetPhKinetics -> updateState { it.copy(phKinetics = event.phKinetics) }
+            is MedicineEvent.SetSalts -> updateState { it.copy(salts = event.salts) }
             is MedicineEvent.SetComment -> updateState { it.copy(comment = event.comment) }
             is MedicineEvent.PickKit -> updateState { it.copy(kits = it.kits.toggle(event.kit)) }
+
+            is MedicineEvent.ProcessImageWithAi -> {
+                updateState { it.copy(isLoading = true, dialogState = null) }
+                viewModelScope.launch {
+                    try {
+                        val extractedText = ru.application.homemedkit.utils.AiMedicineParser.parseWithMLKit(event.context, event.uri)
+                        if (event.useAi) {
+                            if (event.aiMode == ru.application.homemedkit.utils.enums.AiMode.ML_KIT) {
+                                val textLower = extractedText.lowercase()
+                                updateState {
+                                    it.copy(
+                                        productName = if (it.productName.isBlank()) extractedText.take(50) else it.productName,
+                                        comment = if (it.comment.isBlank()) extractedText.take(100) else it.comment,
+                                        isLoading = false
+                                    )
+                                }
+                            } else if (event.aiMode == ru.application.homemedkit.utils.enums.AiMode.GEMINI) {
+                                val result = ru.application.homemedkit.utils.AiMedicineParser.parseWithGemini(
+                                    context = event.context,
+                                    imageUri = event.uri,
+                                    apiKey = event.apiKey,
+                                    useImage = true,
+                                    extractedText = extractedText
+                                )
+                                if (result != null) {
+                                    updateState {
+                                        it.copy(
+                                            productName = result.name.ifBlank { it.productName },
+                                            salts = result.salts.ifBlank { it.salts },
+                                            prodDNormName = result.dose.ifBlank { it.prodDNormName },
+                                            prodFormNormName = result.form.ifBlank { it.prodFormNormName },
+                                            structure = result.composition.ifBlank { it.structure },
+                                            phKinetics = result.indications.ifBlank { it.phKinetics },
+                                            recommendations = result.recommendations.ifBlank { it.recommendations },
+                                            storageConditions = result.storage.ifBlank { it.storageConditions },
+                                            isLoading = false
+                                        )
+                                    }
+                                } else {
+                                    updateState { it.copy(isLoading = false) }
+                                    _action.send(MedicineAction.ShowSnackbar.OnShowError())
+                                }
+                            }
+                        } else {
+                            updateState { it.copy(isLoading = false) }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        updateState { it.copy(isLoading = false) }
+                        _action.send(MedicineAction.ShowSnackbar.OnShowError())
+                    }
+                }
+            }
 
             MedicineEvent.ClearKit -> updateState { it.copy(kits = emptySet()) }
 

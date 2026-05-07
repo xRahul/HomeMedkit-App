@@ -109,6 +109,22 @@ fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (
                     }
                 },
                 actions = {
+                    val useAi = ru.application.homemedkit.utils.di.Preferences.useAi
+                    val aiMode = ru.application.homemedkit.utils.di.Preferences.aiMode
+                    if (useAi && aiMode == ru.application.homemedkit.utils.enums.AiMode.GEMINI && state.images.isNotEmpty() && state.adding) {
+                        ru.application.homemedkit.ui.elements.IconButton(onClick = {
+                            model.onEvent(MedicineEvent.ProcessImageWithAi(
+                                context,
+                                android.net.Uri.fromFile(java.io.File(context.filesDir, state.images.first())),
+                                true,
+                                ru.application.homemedkit.utils.enums.AiMode.GEMINI,
+                                ru.application.homemedkit.utils.di.Preferences.geminiApiKey
+                            ))
+                        }) {
+                            VectorIcon(R.drawable.vector_refresh, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
                     TopBarActions(
                         isDefault = state.default,
                         setModifiable = model::setEditing,

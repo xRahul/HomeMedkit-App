@@ -12,6 +12,7 @@ import androidx.room.FtsOptions
 )
 data class MedicineFTS(
     val productName: String,
+    val salts: String,
     val nameAlias: String,
     val prodFormNormName: String,
     val structure: String,

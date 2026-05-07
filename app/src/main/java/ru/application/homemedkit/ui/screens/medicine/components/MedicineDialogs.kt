@@ -279,6 +279,7 @@ fun IconPicker(isEnabled: (DrugType) -> Boolean, onDismiss: () -> Unit, onPick: 
 
 @Composable
 fun CameraPhotoPreview(scope: CoroutineScope, event: (MedicineEvent) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val controller = rememberCameraConfig(CameraConfig.UseCases.IMAGE_CAPTURE)
 
     Box {
@@ -310,6 +311,18 @@ fun CameraPhotoPreview(scope: CoroutineScope, event: (MedicineEvent) -> Unit) {
                         }
 
                         event(MedicineEvent.SetImage(image))
+                        val useAi = ru.application.homemedkit.utils.di.Preferences.useAi
+                        if (useAi && image != null) {
+                            event(
+                                MedicineEvent.ProcessImageWithAi(
+                                    context = context,
+                                    uri = android.net.Uri.fromFile(java.io.File(context.filesDir, image)),
+                                    useAi = useAi,
+                                    aiMode = ru.application.homemedkit.utils.enums.AiMode.ML_KIT,
+                                    apiKey = ru.application.homemedkit.utils.di.Preferences.geminiApiKey
+                                )
+                            )
+                        }
                     }
                 }
         ) {

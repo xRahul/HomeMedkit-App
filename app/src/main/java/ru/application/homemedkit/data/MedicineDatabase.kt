@@ -27,7 +27,7 @@ import ru.application.homemedkit.data.dto.MedicineKit
 import ru.application.homemedkit.utils.DATABASE_NAME
 
 @Database(
-    version = 36,
+    version = 37,
     entities = [
         Medicine::class,
         MedicineFTS::class,
@@ -133,6 +133,15 @@ abstract class MedicineDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_medicines_kits_kitId` ON `medicines_kits` (`kitId`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_intake_time_intakeId` ON `intake_time` (`intakeId`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_images_medicineId` ON `images` (`medicineId`)")
+            }
+        }
+
+        private val MIGRATION_36_37 = object : Migration(36, 37) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medicines ADD COLUMN salts TEXT NOT NULL DEFAULT ''")
+                db.execSQL("DROP TABLE IF EXISTS medicines_fts")
+                db.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS `medicines_fts` USING FTS4(`productName` TEXT NOT NULL, `salts` TEXT NOT NULL, `nameAlias` TEXT NOT NULL, `prodFormNormName` TEXT NOT NULL, `structure` TEXT NOT NULL, `phKinetics` TEXT NOT NULL, `comment` TEXT NOT NULL, content=`medicines`, prefix=`1,2,3`, tokenize=unicode61)")
+                db.execSQL("INSERT INTO medicines_fts(medicines_fts) VALUES('rebuild')")
             }
         }
     }

@@ -116,6 +116,19 @@ fun MedicineGeneralInfoSection(state: MedicineState, event: (MedicineEvent) -> U
 @Composable
 fun MedicineAdditionalInfoSection(state: MedicineState, event: (MedicineEvent) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
+        if (state.adding || state.editing || state.salts.isNotEmpty()) {
+            InfoTextField(
+                isEditing = !state.default,
+                title = stringResource(R.string.text_medicine_salts),
+                value = state.salts,
+                onValueChange = { event(MedicineEvent.SetSalts(it)) },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Default
+                )
+            )
+        }
         if (state.default && state.structure.isNotEmpty()) {
             InfoTextField(
                 isEditing = false,

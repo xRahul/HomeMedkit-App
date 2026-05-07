@@ -82,6 +82,7 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.preference
 import me.zhanghai.compose.preference.preferenceCategory
 import me.zhanghai.compose.preference.switchPreference
+import me.zhanghai.compose.preference.textFieldPreference
 import me.zhanghai.compose.preference.twoTargetSwitchPreference
 import ru.application.homemedkit.R
 import ru.application.homemedkit.data.dto.Kit
@@ -98,6 +99,27 @@ import ru.application.homemedkit.ui.screens.permissions.PermissionsScreen
 import ru.application.homemedkit.ui.theme.isDynamicColorAvailable
 import ru.application.homemedkit.utils.ActionHandler
 import ru.application.homemedkit.utils.ActionResult
+import ru.application.homemedkit.utils.KEY_AI_MODE
+import ru.application.homemedkit.utils.KEY_AI_SETTINGS
+import ru.application.homemedkit.utils.KEY_APP_SYSTEM
+import ru.application.homemedkit.utils.KEY_APP_THEME
+import ru.application.homemedkit.utils.KEY_APP_VIEW
+import ru.application.homemedkit.utils.KEY_AUTO_CHANGE_INTAKE_WHEN_TIME_CHANGE
+import ru.application.homemedkit.utils.KEY_AUTO_SYNC_ENABLED
+import ru.application.homemedkit.utils.KEY_BASIC_SETTINGS
+import ru.application.homemedkit.utils.KEY_CHECK_EXP_DATE
+import ru.application.homemedkit.utils.KEY_CLEAR_CACHE
+import ru.application.homemedkit.utils.KEY_CONFIRM_EXIT
+import ru.application.homemedkit.utils.KEY_DOWNLOAD
+import ru.application.homemedkit.utils.KEY_DYNAMIC_COLOR
+import ru.application.homemedkit.utils.KEY_GEMINI_API_KEY
+import ru.application.homemedkit.utils.KEY_IMPORT_EXPORT
+import ru.application.homemedkit.utils.KEY_LANGUAGE
+import ru.application.homemedkit.utils.KEY_START_PAGE
+import ru.application.homemedkit.utils.KEY_USE_AI
+import ru.application.homemedkit.utils.KEY_USE_ALARM_CLOCK
+import ru.application.homemedkit.utils.KEY_USE_VIBRATION_SCAN
+import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.AppLocale
 import ru.application.homemedkit.utils.DataManager
 import ru.application.homemedkit.utils.KEY_APP_SYSTEM
@@ -111,6 +133,7 @@ import ru.application.homemedkit.utils.KEY_CONFIRM_EXIT
 import ru.application.homemedkit.utils.KEY_DOWNLOAD
 import ru.application.homemedkit.utils.KEY_DYNAMIC_COLOR
 import ru.application.homemedkit.utils.KEY_FIXING
+import ru.application.homemedkit.utils.KEY_GEMINI_API_KEY
 import ru.application.homemedkit.utils.KEY_IMPORT_EXPORT
 import ru.application.homemedkit.utils.KEY_KITS
 import ru.application.homemedkit.utils.KEY_PERMISSIONS
@@ -246,6 +269,46 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
                 title = { Text(stringResource(R.string.preference_auto_intake_change_on_time_change)) },
                 summary = { Text(stringResource(if (it) R.string.text_on else R.string.text_off)) }
             )
+
+            preferenceCategory(
+                key = KEY_AI_SETTINGS,
+                title = { Text(stringResource(R.string.preference_ai_settings)) }
+            )
+
+            switchPreference(
+                key = KEY_USE_AI,
+                defaultValue = false,
+                title = { Text(stringResource(R.string.preference_use_ai)) },
+                summary = { Text(stringResource(if (it) R.string.text_on else R.string.text_off)) }
+            )
+
+            val useAi = model.useAi.value
+            if (useAi) {
+                preference(
+                    key = KEY_AI_MODE,
+                    title = { Text(stringResource(R.string.preference_ai_mode)) },
+                    summary = {
+                        val mode = model.aiMode.value
+                        Text(stringResource(mode.title))
+                    },
+                    onClick = {
+                        val currentMode = model.aiMode.value
+                        val newMode = if (currentMode == ru.application.homemedkit.utils.enums.AiMode.ML_KIT) ru.application.homemedkit.utils.enums.AiMode.GEMINI else ru.application.homemedkit.utils.enums.AiMode.ML_KIT
+                        Preferences.setAiMode(newMode)
+                    }
+                )
+
+                val aiMode = model.aiMode.value
+                if (aiMode == ru.application.homemedkit.utils.enums.AiMode.GEMINI) {
+                    textFieldPreference(
+                        key = KEY_GEMINI_API_KEY,
+                        defaultValue = model.geminiApiKey,
+                        title = { Text(stringResource(R.string.preference_gemini_api_key)) },
+                        textToValue = { it },
+                        summary = { Text(if (it.isBlank()) stringResource(R.string.text_empty) else "••••••••") }
+                    )
+                }
+            }
 
             preferenceCategory(
                 key = KEY_APP_VIEW,

@@ -38,6 +38,10 @@ class SettingsViewModel(
 
     val theme = preferences.theme.stateIn(viewModelScope, SharingStarted.Eagerly, Theme.SYSTEM)
 
+    val useAi = preferences.useAiFlow.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val aiMode = preferences.aiModeFlow.stateIn(viewModelScope, SharingStarted.Eagerly, ru.application.homemedkit.utils.enums.AiMode.ML_KIT)
+    val geminiApiKey: String get() = preferences.geminiApiKey
+
     val kits = kitDAO.getFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 

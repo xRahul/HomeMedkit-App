@@ -20,6 +20,7 @@ import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import ru.application.homemedkit.data.MedicineDatabase
 import ru.application.homemedkit.data.dto.Medicine
+import ru.application.homemedkit.network.GoogleDriveApi
 import ru.application.homemedkit.network.Network
 import ru.application.homemedkit.network.models.auth.BackupData
 import ru.application.homemedkit.network.models.auth.FileMetadata
@@ -35,10 +36,17 @@ class SyncWorker(
     params: WorkerParameters,
     private val preferences: Preferences
 ) : CoroutineWorker(context, params) {
+
+    private val isYandex = preferences.authIsYandex
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val mode = when (val name = inputData.getString(SYNC_MODE)) {
             null -> SyncMode.AUTO
             else -> SyncMode.valueOf(name)
+        }
+
+        if (!isYandex) {
+            GoogleDriveApi.init(context)
         }
 
         return@withContext try {
@@ -47,34 +55,28 @@ class SyncWorker(
                 SyncMode.FORCE_UPLOAD -> upload(serializeData())
                 SyncMode.AUTO -> {
                     coroutineScope {
-                        val getRemote = async {
-                            Network.Yandex.getFileMetadata("/homemeds/data/medicines.json")
-                        }
+                        val fileLocal = serializeData()
 
-                        val getLocal = async {
-                            serializeData()
-                        }
-
-                        val fileRemote = getRemote.await()
-                        val fileLocal = getLocal.await()
-
-                        if (fileRemote != null) {
-                            val localMd5 = fileLocal.md5()
-                            val remoteMd5 = fileRemote.md5
-
-                            if (localMd5.equals(remoteMd5, ignoreCase = true)) {
-                                fileLocal.delete()
-                                return@coroutineScope
-                            }
-
-                            if (fileRemote.modified > preferences.lastSyncMillis) {
-                                fileLocal.delete()
-                                download()
+                        if (isYandex) {
+                            val fileRemote = Network.Yandex.getFileMetadata("/homemeds/data/medicines.json")
+                            if (fileRemote != null) {
+                                val localMd5 = fileLocal.md5()
+                                if (localMd5.equals(fileRemote.md5, ignoreCase = true)) {
+                                    fileLocal.delete()
+                                    return@coroutineScope
+                                }
+                                if (fileRemote.modified > preferences.lastSyncMillis) {
+                                    fileLocal.delete()
+                                    download()
+                                } else {
+                                    upload(fileLocal)
+                                }
                             } else {
                                 upload(fileLocal)
                             }
                         } else {
-                            upload(fileLocal)
+                            // Google Drive sync disabled
+                            fileLocal.delete()
                         }
                     }
                 }
@@ -88,38 +90,34 @@ class SyncWorker(
     }
 
     private suspend fun upload(file: File) {
-        if (!Network.Yandex.checkConnection()) {
-            throw Exception()
+        if (isYandex) {
+            if (!Network.Yandex.checkConnection()) throw Exception()
+        } else {
+            if (!GoogleDriveApi.isReady()) throw Exception()
         }
 
         var imagesSizeBytes = 0L
-
         val mimeTypeMap = MimeTypeMap.getSingleton()
-        val images = context.filesDir.listFiles { file ->
-            val mimeType = mimeTypeMap.getMimeTypeFromExtension(file.extension)
+        val images = context.filesDir.listFiles { f ->
+            val mimeType = mimeTypeMap.getMimeTypeFromExtension(f.extension)
             val isImage = mimeType != null && mimeType.startsWith(MimeType.IMAGES)
-
-            if (isImage) {
-                imagesSizeBytes += file.length()
-            }
-
+            if (isImage) imagesSizeBytes += f.length()
             isImage
         }
 
         try {
-            val totalUploadSize = file.length() + imagesSizeBytes
-            val availableSpace = Network.Yandex.getAvailableSpace()
+            if (isYandex) {
+                val availableSpace = Network.Yandex.getAvailableSpace()
+                if (availableSpace < (file.length() + imagesSizeBytes + 1024 * 1024L)) throw Exception()
 
-            if (availableSpace < (totalUploadSize + 1024 * 1024L)) {
-                throw Exception()
+                Network.Yandex.createFolder("/homemeds")
+                Network.Yandex.createFolder("/homemeds/data")
+                Network.Yandex.createFolder("/homemeds/images")
+                Network.Yandex.uploadFile("/homemeds/data/${file.name}", file)
+            } else {
+                // Google Drive upload disabled
             }
 
-            Network.Yandex.createFolder("/homemeds")
-            Network.Yandex.createFolder("/homemeds/data")
-            Network.Yandex.createFolder("/homemeds/images")
-
-
-            Network.Yandex.uploadFile("/homemeds/data/${file.name}", file)
             if (!images.isNullOrEmpty()) {
                 uploadImages(images)
             }
@@ -133,100 +131,78 @@ class SyncWorker(
     }
 
     private suspend fun uploadImages(images: Array<File>) {
-        val remoteData = Network.Yandex.getImagesMetadata() ?: return
-        val remoteMap = remoteData.associateBy(FileMetadata::name)
-
-        val uploadList = images.filter { image ->
-            val remoteImage = remoteMap[image.name] ?: return@filter true
-
-            val localMd5 = image.md5()
-            val remote = remoteImage.mapper()
-
-            !localMd5.equals(remote.md5, true) && image.lastModified() > remote.modified
-        }
-
-        try {
+        if (isYandex) {
+            val remoteData = Network.Yandex.getImagesMetadata() ?: return
+            val remoteMap = remoteData.associateBy(FileMetadata::name)
+            val uploadList = images.filter { image ->
+                val remoteImage = remoteMap[image.name] ?: return@filter true
+                val remote = remoteImage.mapper()
+                !image.md5().equals(remote.md5, true) && image.lastModified() > remote.modified
+            }
             supervisorScope {
-                val uploadJobs = uploadList.map { file ->
+                uploadList.map { file ->
                     async(Dispatchers.IO.limitedParallelism(3)) {
                         Network.Yandex.uploadFile("/homemeds/images/${file.name}", file)
                     }
-                }
-
-                uploadJobs.awaitAll()
+                }.awaitAll()
             }
-        } catch (e: IOException) {
-            throw Exception(e)
+        } else {
+            // Google Drive uploadImages disabled
         }
     }
 
     private suspend fun downloadImages(images: Array<File>?) {
-        val remoteData = Network.Yandex.getImagesMetadata() ?: return
-        val localData = images?.associateBy { it.name.orEmpty() }
-
-        val downloadList = remoteData.filter { image ->
-            val localFile = localData?.get(image.name) ?: return@filter true
-
-            val remote = image.mapper()
-            val localMd5 = localFile.md5()
-
-            !localMd5.equals(remote.md5, true) && remote.modified > localFile.lastModified()
-        }
-
-        try {
+        if (isYandex) {
+            val remoteData = Network.Yandex.getImagesMetadata() ?: return
+            val localData = images?.associateBy { it.name.orEmpty() }
+            val downloadList = remoteData.filter { image ->
+                val localFile = localData?.get(image.name) ?: return@filter true
+                val remote = image.mapper()
+                !localFile.md5().equals(remote.md5, true) && remote.modified > localFile.lastModified()
+            }
             supervisorScope {
-                val downloadJobs = downloadList.map { image ->
+                downloadList.map { image ->
                     async(Dispatchers.IO.limitedParallelism(3)) {
                         val name = image.name ?: return@async
                         val file = File(context.filesDir, name)
-
                         Network.Yandex.downloadFile("/homemeds/images/$name", file)
-
-                        val remoteTime = image.mapper().modified
-                        file.setLastModified(remoteTime)
+                        file.setLastModified(image.mapper().modified)
                     }
-                }
-
-                downloadJobs.awaitAll()
+                }.awaitAll()
             }
-        } catch (e: IOException) {
-            throw Exception(e)
+        } else {
+            // Google Drive downloadImages disabled
         }
     }
 
     private suspend fun download() {
         val tempFile = File(context.cacheDir, "medicines_temp.json")
-        val downloadSuccess = Network.Yandex.downloadFile("/homemeds/data/medicines.json", tempFile)
+        val downloadSuccess = if (isYandex) {
+            Network.Yandex.downloadFile("/homemeds/data/medicines.json", tempFile)
+        } else {
+            // Google Drive download disabled
+            false
+        }
 
         if (downloadSuccess) {
             val database = MedicineDatabase.getInstance(context)
-
             try {
                 tempFile.inputStream().use { inputStream ->
                     val backup = Json.decodeFromStream<BackupData<List<Medicine>>>(inputStream)
-
-                    if (backup.version > database.openHelper.readableDatabase.version) {
-                        throw Exception()
+                    if (backup.version <= database.openHelper.readableDatabase.version) {
+                        database.medicineDAO().syncMedicines(backup.data)
                     }
-
-                    database.medicineDAO().syncMedicines(backup.data)
                 }
-            } catch (e: Exception) {
-                throw e
             } finally {
-                withContext(NonCancellable) {
-                    tempFile.delete()
-                }
+                withContext(NonCancellable) { tempFile.delete() }
             }
         }
 
         val mimeTypeMap = MimeTypeMap.getSingleton()
-        val images = context.filesDir.listFiles { file ->
-            val mimeType = mimeTypeMap.getMimeTypeFromExtension(file.extension)
-
+        val images = context.filesDir.listFiles { f ->
+            val mimeType = mimeTypeMap.getMimeTypeFromExtension(f.extension)
             mimeType != null && mimeType.startsWith(MimeType.IMAGES)
         }
-
         downloadImages(images)
     }
 
@@ -238,15 +214,9 @@ class SyncWorker(
             version = database.openHelper.readableDatabase.version,
             data = medicines
         )
-
-        try {
-            file.outputStream().buffered().use { outputStream ->
-                Json.encodeToStream(backupData, outputStream)
-            }
-        } catch (e: Exception) {
-            throw e
+        file.outputStream().buffered().use { outputStream ->
+            Json.encodeToStream(backupData, outputStream)
         }
-
         return file
     }
 }

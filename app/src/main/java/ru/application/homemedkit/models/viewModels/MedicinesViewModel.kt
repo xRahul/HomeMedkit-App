@@ -138,8 +138,7 @@ class MedicinesViewModel(
     fun pickView(view: MedicineListView) {
         if (currentState.listView != view) {
             updateState { it.copy(listView = view) }
-            preferences.saveListView(view)
-        }
+            preferences.setMedicinesListView(view)        }
     }
 
     fun toggleAdding() = updateState { it.copy(showAdding = !it.showAdding) }

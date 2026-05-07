@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import kotlinx.coroutines.flow.Flow
 import ru.application.homemedkit.network.models.auth.Token
 import ru.application.homemedkit.utils.di.AlarmManager
+import ru.application.homemedkit.utils.enums.AiMode
 import ru.application.homemedkit.utils.enums.MedicineListView
 import ru.application.homemedkit.utils.enums.Page
 import ru.application.homemedkit.utils.enums.Sorting
@@ -46,6 +47,21 @@ class Preferences internal constructor(context: Context) {
 
     val imageFetch: Boolean
         get() = preferences.getBoolean(KEY_DOWNLOAD, true)
+
+    val useAi: Boolean
+        get() = preferences.getBoolean(KEY_USE_AI, false)
+
+    val useAiFlow: Flow<Boolean>
+        get() = preferences.getFlow(KEY_USE_AI, false)
+
+    val aiMode: AiMode
+        get() = preferences.getEnum(KEY_AI_MODE, AiMode.ML_KIT)
+
+    val aiModeFlow: Flow<AiMode>
+        get() = preferences.getEnumFlow(KEY_AI_MODE, AiMode.ML_KIT)
+
+    val geminiApiKey: String
+        get() = preferences.getString(KEY_GEMINI_API_KEY, BLANK) ?: BLANK
 
     val checkExpiration: Boolean
         get() = preferences.getBoolean(KEY_CHECK_EXP_DATE, false)
@@ -110,8 +126,20 @@ class Preferences internal constructor(context: Context) {
 
     fun setHasLaunched() = preferences.edit { putBoolean(KEY_FIRST_LAUNCH_INTAKE, false) }
 
-    fun saveListView(view: MedicineListView) = preferences.edit {
+    fun setMedicinesListView(view: MedicineListView) = preferences.edit {
         putEnum(KEY_MEDICINES_LIST_VIEW, view)
+    }
+
+    fun setUseAi(useAi: Boolean) = preferences.edit {
+        putBoolean(KEY_USE_AI, useAi)
+    }
+
+    fun setAiMode(mode: AiMode) = preferences.edit {
+        putEnum(KEY_AI_MODE, mode)
+    }
+
+    fun setGeminiApiKey(key: String) = preferences.edit {
+        putString(KEY_GEMINI_API_KEY, key)
     }
 
     fun saveKitsFilter(kitsId: Set<String>) = preferences.edit {

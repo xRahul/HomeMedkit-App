@@ -116,9 +116,23 @@ dependencies {
     // ==================== Coil ====================
     implementation(libs.coil.compose)
 
+    // ==================== AI & ML ====================
+    implementation(libs.google.mlkit.text.recognition)
+    implementation(libs.google.ai.client.generativeai)
+
+    // ==================== Google Drive Sync ====================
+    implementation(libs.play.services.auth)
+    implementation(libs.google.api.services.drive) {
+        exclude(group = "org.apache.httpcomponents")
+    }
+    implementation(libs.google.api.client.android)
+    implementation(libs.guava)
+    implementation(libs.kotlinx.coroutines.play.services)
+
     // ==================== Test ====================
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.mockk)
-}
+    testImplementation(libs.kotlinx.coroutines.test)
+    }

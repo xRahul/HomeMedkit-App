@@ -219,11 +219,33 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
                             }
                         )
 
+                        val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+                            androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+                        ) { result ->
+                            if (result.resultCode == android.app.Activity.RESULT_OK) {
+                                val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                                try {
+                                    val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+                                    ru.application.homemedkit.network.GoogleDriveApi.init(context)
+                                    model.loginGoogle(account?.account!!)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+
+                        val gso = com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestEmail()
+                            .requestScopes(com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_FILE))
+                            .requestScopes(com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_APPDATA))
+                            .build()
+                        val mGoogleSignInClient = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(context, gso)
+
                         LocalProviderButton(
-                            onClick = {},
+                            onClick = { launcher.launch(mGoogleSignInClient.signInIntent) },
                             icon = R.drawable.vector_google,
                             text = R.string.text_google,
-                            enabled = false
+                            enabled = true
                         )
                     }
                 }
@@ -231,6 +253,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
 
             AuthStatus.Success -> {
                 val lastSync by model.lastSync.collectAsStateWithLifecycle()
+                val isYandex = model.state.collectAsStateWithLifecycle().value == AuthStatus.Success && ru.application.homemedkit.utils.di.Preferences.authIsYandex
 
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,
@@ -251,7 +274,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Image(
-                                    painter = painterResource(R.drawable.vector_yandex),
+                                    painter = painterResource(if (isYandex) R.drawable.vector_yandex else R.drawable.vector_google),
                                     contentDescription = null,
                                     modifier = Modifier.size(64.dp)
                                 )
@@ -260,7 +283,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = stringResource(R.string.text_provider_is_yandex),
+                                text = stringResource(if (isYandex) R.string.text_provider_is_yandex else R.string.text_provider_is_google),
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center
