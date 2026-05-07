@@ -8,18 +8,20 @@ import ru.application.homemedkit.data.dto.Alarm
 import ru.application.homemedkit.utils.Formatter
 import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.extensions.goAsync
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZonedDateTime
 
-class TimeZoneBootReceiver : BroadcastReceiver() {
+class TimeZoneBootReceiver : BroadcastReceiver(), KoinComponent {
+    private val database: MedicineDatabase by inject()
+    private val preferences: Preferences by inject()
+    private val alarmSetter: AlarmSetter by inject()
+
     override fun onReceive(context: Context, intent: Intent) = goAsync {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_TIMEZONE_CHANGED || intent.action == Intent.ACTION_TIME_CHANGED) {
-            val alarmSetter = AlarmSetter.getInstance(context)
-            val database = MedicineDatabase.getInstance(context)
-            val preferences = Preferences.getInstance(context)
-
             alarmSetter.cancelAll()
 
             if (preferences.autoIntakeReschedule && (intent.action == Intent.ACTION_TIMEZONE_CHANGED || intent.action == Intent.ACTION_TIME_CHANGED)) {

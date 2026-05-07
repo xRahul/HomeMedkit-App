@@ -4,17 +4,20 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ru.application.homemedkit.data.dao.KitDAO
 import ru.application.homemedkit.data.dto.Kit
 import ru.application.homemedkit.models.events.SettingsEvent
 import ru.application.homemedkit.models.states.SettingsState
 import ru.application.homemedkit.utils.ActionResult
-import ru.application.homemedkit.utils.di.Database
-import ru.application.homemedkit.utils.di.Preferences
+import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.enums.Page
 import ru.application.homemedkit.utils.enums.Sorting
 import ru.application.homemedkit.utils.enums.Theme
 
-class SettingsViewModel : BaseViewModel<SettingsState, SettingsEvent>() {
+class SettingsViewModel(
+    private val preferences: Preferences,
+    private val kitDAO: KitDAO
+) : BaseViewModel<SettingsState, SettingsEvent>() {
     override fun initState() = SettingsState()
 
     override fun loadData() = Unit
@@ -27,26 +30,26 @@ class SettingsViewModel : BaseViewModel<SettingsState, SettingsEvent>() {
         SettingsEvent.ShowPermissions -> updateState { it.copy(showPermissions = !it.showPermissions) }
     }
 
-    val startPage = Preferences.startPageFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Page.MEDICINES)
+    val startPage = preferences.startPageFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Page.MEDICINES)
 
-    val sortingType = Preferences.sortingOrderFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Sorting.IN_NAME)
+    val sortingType = preferences.sortingOrderFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Sorting.IN_NAME)
 
-    val checkExpiration = Preferences.checkExpirationFlow.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val checkExpiration = preferences.checkExpirationFlow.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val theme = Preferences.theme.stateIn(viewModelScope, SharingStarted.Eagerly, Theme.SYSTEM)
+    val theme = preferences.theme.stateIn(viewModelScope, SharingStarted.Eagerly, Theme.SYSTEM)
 
-    val kits = Database.kitDAO().getFlow()
+    val kits = kitDAO.getFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     fun upsertKit(kit: Kit) {
         viewModelScope.launch {
-            Database.kitDAO().upsert(kit)
+            kitDAO.upsert(kit)
         }
     }
 
     fun deleteKit(kit: Kit) {
         viewModelScope.launch {
-            Database.kitDAO().delete(kit)
+            kitDAO.delete(kit)
         }
     }
 
@@ -60,7 +63,7 @@ class SettingsViewModel : BaseViewModel<SettingsState, SettingsEvent>() {
                 )
             }
 
-            Database.kitDAO().updatePositions(newList)
+            kitDAO.updatePositions(newList)
         }
     }
 

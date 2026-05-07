@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import ru.application.homemedkit.R
+import ru.application.homemedkit.data.dao.KitDAO
+import ru.application.homemedkit.data.dao.MedicineDAO
 import ru.application.homemedkit.data.dto.Kit
 import ru.application.homemedkit.data.model.KitModel
 import ru.application.homemedkit.data.model.MedicineGrouped
@@ -21,19 +23,20 @@ import ru.application.homemedkit.data.model.MedicineList
 import ru.application.homemedkit.data.queries.MedicinesQueryBuilder
 import ru.application.homemedkit.models.states.MedicinesState
 import ru.application.homemedkit.utils.BLANK
+import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.ResourceText
-import ru.application.homemedkit.utils.di.Database
-import ru.application.homemedkit.utils.di.Preferences
 import ru.application.homemedkit.utils.enums.MedicineListView
 import ru.application.homemedkit.utils.enums.Sorting
 import ru.application.homemedkit.utils.extensions.toMedicineList
 import ru.application.homemedkit.utils.extensions.toModel
 import ru.application.homemedkit.utils.extensions.toggle
 
-class MedicinesViewModel : BaseViewModel<MedicinesState, Unit>() {
+class MedicinesViewModel(
+    private val medicineDAO: MedicineDAO,
+    private val kitDAO: KitDAO,
+    private val preferences: Preferences
+) : BaseViewModel<MedicinesState, Unit>() {
     private val currentMillis by lazy { System.currentTimeMillis() }
-    private val medicineDAO by lazy { Database.medicineDAO() }
-    private val kitDAO by lazy { Database.kitDAO() }
 
     val kits = kitDAO.getFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
@@ -119,7 +122,7 @@ class MedicinesViewModel : BaseViewModel<MedicinesState, Unit>() {
     override fun initState() = MedicinesState()
 
     override fun loadData() {
-        val kitIds = Preferences.kitsFilter
+        val kitIds = preferences.kitsFilter
             .orEmpty()
             .mapNotNullTo(mutableSetOf(), String::toLongOrNull)
 
@@ -135,7 +138,7 @@ class MedicinesViewModel : BaseViewModel<MedicinesState, Unit>() {
     fun pickView(view: MedicineListView) {
         if (currentState.listView != view) {
             updateState { it.copy(listView = view) }
-            Preferences.saveListView(view)
+            preferences.saveListView(view)
         }
     }
 
@@ -151,7 +154,7 @@ class MedicinesViewModel : BaseViewModel<MedicinesState, Unit>() {
         updateState { it.copy(showFilter = !it.showFilter) }
 
         if (!currentState.showFilter) {
-            Preferences.saveKitsFilter(currentState.kits.mapTo(mutableSetOf()) { it.kitId.toString() })
+            preferences.saveKitsFilter(currentState.kits.mapTo(mutableSetOf()) { it.kitId.toString() })
         }
     }
 
@@ -163,13 +166,13 @@ class MedicinesViewModel : BaseViewModel<MedicinesState, Unit>() {
             )
         }
 
-        Preferences.saveKitsFilter(emptySet())
+        preferences.saveKitsFilter(emptySet())
     }
 
     fun pickFilter(kit: Kit) = updateState { it.copy(kits = it.kits.toggle(kit)) }
 
     fun hideEmpty(hide: Boolean) {
         updateState { it.copy(hideEmpty = hide) }
-        Preferences.setHideEmptyMedicines(hide)
+        preferences.setHideEmptyMedicines(hide)
     }
 }

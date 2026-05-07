@@ -20,6 +20,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.application.homemedkit.R
+import ru.application.homemedkit.data.dao.AlarmDAO
+import ru.application.homemedkit.data.dao.IntakeDAO
+import ru.application.homemedkit.data.dao.MedicineDAO
+import ru.application.homemedkit.data.dao.TakenDAO
 import ru.application.homemedkit.data.dto.IntakeTaken
 import ru.application.homemedkit.data.model.IntakeList
 import ru.application.homemedkit.data.model.IntakeModel
@@ -35,8 +39,7 @@ import ru.application.homemedkit.models.states.TakenState
 import ru.application.homemedkit.utils.BLANK
 import ru.application.homemedkit.utils.Formatter
 import ru.application.homemedkit.utils.ResourceText
-import ru.application.homemedkit.utils.di.AlarmManager
-import ru.application.homemedkit.utils.di.Database
+import ru.application.homemedkit.receivers.AlarmSetter
 import ru.application.homemedkit.utils.enums.IntakeTab
 import ru.application.homemedkit.utils.extensions.orDefault
 import ru.application.homemedkit.utils.extensions.toIntake
@@ -46,11 +49,13 @@ import ru.application.homemedkit.utils.extensions.toTakenState
 import java.time.LocalDate
 import kotlin.math.abs
 
-class IntakesViewModel : BaseViewModel<IntakesState, IntakesEvent>() {
-    private val intakeDAO by lazy { Database.intakeDAO() }
-    private val medicineDAO by lazy { Database.medicineDAO() }
-    private val takenDAO by lazy { Database.takenDAO() }
-    private val alarmDAO by lazy { Database.alarmDAO() }
+class IntakesViewModel(
+    private val intakeDAO: IntakeDAO,
+    private val medicineDAO: MedicineDAO,
+    private val takenDAO: TakenDAO,
+    private val alarmDAO: AlarmDAO,
+    private val alarmManager: AlarmSetter
+) : BaseViewModel<IntakesState, IntakesEvent>() {
 
     private val currentYear by lazy { LocalDate.now().year }
 
@@ -202,7 +207,7 @@ class IntakesViewModel : BaseViewModel<IntakesState, IntakesEvent>() {
 
                 medicineDAO.intakeMedicine(medicine.id, alarm.amount)
 
-                AlarmManager.setPreAlarm(intake.intakeId)
+                alarmManager.setPreAlarm(intake.intakeId)
             }
 
             closeDialog()

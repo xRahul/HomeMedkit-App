@@ -11,10 +11,13 @@ import ru.application.homemedkit.utils.TAKEN_ID
 import ru.application.homemedkit.utils.TYPE
 import ru.application.homemedkit.utils.extensions.goAsync
 
-class ActionReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) = goAsync {
-        val database = MedicineDatabase.getInstance(context)
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
+class ActionReceiver : BroadcastReceiver(), KoinComponent {
+    private val database: MedicineDatabase by inject()
+
+    override fun onReceive(context: Context, intent: Intent) = goAsync {
         val medicineId = intent.getLongExtra(ID, 0L)
         val takenId = intent.getLongExtra(TAKEN_ID, 0L)
         val amount = intent.getDoubleExtra(BLANK, 0.0)

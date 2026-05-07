@@ -13,9 +13,13 @@ import ru.application.homemedkit.utils.TAKEN_ID
 import ru.application.homemedkit.utils.TYPE
 import ru.application.homemedkit.utils.extensions.goAsync
 
-class ActionGroupReceiver : BroadcastReceiver() {
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+
+class ActionGroupReceiver : BroadcastReceiver(), KoinComponent {
+    private val database: MedicineDatabase by inject()
+
     override fun onReceive(context: Context, intent: Intent) = goAsync {
-        val database = MedicineDatabase.getInstance(context)
         val manager = NotificationManagerCompat.from(context)
 
         manager.cancel(Int.MAX_VALUE)

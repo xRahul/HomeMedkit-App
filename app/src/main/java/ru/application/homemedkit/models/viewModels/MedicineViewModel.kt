@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ru.application.homemedkit.data.dao.KitDAO
+import ru.application.homemedkit.data.dao.MedicineDAO
 import ru.application.homemedkit.data.dto.Image
 import ru.application.homemedkit.data.dto.MedicineKit
 import ru.application.homemedkit.models.events.MedicineAction
@@ -23,7 +25,6 @@ import ru.application.homemedkit.models.validation.Validation
 import ru.application.homemedkit.network.Network
 import ru.application.homemedkit.utils.BLANK
 import ru.application.homemedkit.utils.Formatter
-import ru.application.homemedkit.utils.di.Database
 import ru.application.homemedkit.utils.enums.DrugType
 import ru.application.homemedkit.utils.enums.ImageEditing
 import ru.application.homemedkit.utils.extensions.asMedicine
@@ -33,21 +34,20 @@ import ru.application.homemedkit.utils.extensions.toState
 import ru.application.homemedkit.utils.extensions.toggle
 import ru.application.homemedkit.utils.getMedicineImages
 import java.io.File
+import ru.application.homemedkit.data.dto.Kit
 
 class MedicineViewModel(
     private val id: Long,
     private val cis: String,
-    private val duplicate: Boolean
+    private val duplicate: Boolean,
+    private val dao: MedicineDAO,
+    private val daoK: KitDAO
 ) : BaseViewModel<MedicineState, MedicineEvent>() {
-    private val dao by lazy { Database.medicineDAO() }
-    private val daoK by lazy { Database.kitDAO() }
 
     private val _action = Channel<MedicineAction>()
     val action = _action.receiveAsFlow()
 
-    val kits by lazy {
-        daoK.getFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
-    }
+    val kits = daoK.getFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList<Kit>())
 
     override fun initState() = MedicineState()
 

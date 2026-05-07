@@ -24,13 +24,17 @@ import ru.application.homemedkit.network.Network
 import ru.application.homemedkit.network.models.auth.BackupData
 import ru.application.homemedkit.network.models.auth.FileMetadata
 import ru.application.homemedkit.utils.MimeType
+import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.SYNC_MODE
-import ru.application.homemedkit.utils.di.Preferences
 import ru.application.homemedkit.utils.enums.SyncMode
 import ru.application.homemedkit.utils.extensions.md5
 import java.io.File
 
-class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+class SyncWorker(
+    val context: Context,
+    params: WorkerParameters,
+    private val preferences: Preferences
+) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val mode = when (val name = inputData.getString(SYNC_MODE)) {
             null -> SyncMode.AUTO
@@ -63,7 +67,7 @@ class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWork
                                 return@coroutineScope
                             }
 
-                            if (fileRemote.modified > Preferences.lastSyncMillis) {
+                            if (fileRemote.modified > preferences.lastSyncMillis) {
                                 fileLocal.delete()
                                 download()
                             } else {
@@ -76,7 +80,7 @@ class SyncWorker(val context: Context, params: WorkerParameters) : CoroutineWork
                 }
             }
 
-            Preferences.updateSyncMillis()
+            preferences.updateSyncMillis()
             Result.success()
         } catch (_: Exception) {
             Result.failure()

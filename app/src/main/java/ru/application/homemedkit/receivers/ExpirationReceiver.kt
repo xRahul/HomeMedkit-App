@@ -11,11 +11,17 @@ import ru.application.homemedkit.utils.CHANNEL_ID_EXP
 import ru.application.homemedkit.utils.extensions.goAsync
 import ru.application.homemedkit.utils.extensions.safeNotify
 
-class ExpirationReceiver : BroadcastReceiver() {
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+
+class ExpirationReceiver : BroadcastReceiver(), KoinComponent {
+    private val database: MedicineDatabase by inject()
+    private val alarmSetter: AlarmSetter by inject()
+
     override fun onReceive(context: Context, intent: Intent) = goAsync {
         val inMonth = System.currentTimeMillis() + 30 * 86400000L // millis in day
 
-        MedicineDatabase.getInstance(context).medicineDAO().getExpiredSoon(inMonth).forEach {
+        database.medicineDAO().getExpiredSoon(inMonth).forEach {
             NotificationManagerCompat.from(context).safeNotify(
                 context = context,
                 code = it.id.toInt(),
@@ -30,7 +36,7 @@ class ExpirationReceiver : BroadcastReceiver() {
             )
         }
 
-        AlarmSetter.getInstance(context).checkExpiration(true)
+        alarmSetter.checkExpiration(true)
     }
 }
 

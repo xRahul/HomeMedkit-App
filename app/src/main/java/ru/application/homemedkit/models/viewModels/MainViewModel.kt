@@ -18,26 +18,28 @@ import ru.application.homemedkit.ui.navigation.utils.DeepLinkPattern
 import ru.application.homemedkit.ui.navigation.utils.DeepLinkRequest
 import ru.application.homemedkit.ui.navigation.utils.KeyDecoder
 import ru.application.homemedkit.utils.DEEP_LINK_FULL_SCREEN
+import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.REDIRECT_URI_YANDEX
 import ru.application.homemedkit.utils.WORK_AUTO_SYNC
-import ru.application.homemedkit.utils.di.Preferences
-import ru.application.homemedkit.utils.di.WorkManager
 import ru.application.homemedkit.worker.WorkerManager
 
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val workManager: androidx.work.WorkManager,
+    private val preferences: Preferences
+) : ViewModel() {
     private val _snackbarEvent = Channel<WorkInfo.State>()
     val snackbarEvent = _snackbarEvent.receiveAsFlow()
 
-    val syncWorkState = WorkManager
+    val syncWorkState = workManager
         .getWorkInfosForUniqueWorkFlow(WORK_AUTO_SYNC)
-        .onStart { if (Preferences.isAutoSyncEnabled) WorkerManager.startAutoSyncWork() }
+        .onStart { if (preferences.isAutoSyncEnabled) WorkerManager.startAutoSyncWork(workManager) }
         .map { it.firstOrNull()?.state }
-        .onEach { if (Preferences.isAutoSyncEnabled && it != null) _snackbarEvent.send(it) }
+        .onEach { if (preferences.isAutoSyncEnabled && it != null) _snackbarEvent.send(it) }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     fun getDeepLink(data: Uri?): Screen {
         if (data == null) {
-            return Preferences.startPage.route
+            return preferences.startPage.route
         }
 
         val deepLinkPatterns = listOf(
@@ -53,7 +55,7 @@ class MainViewModel : ViewModel() {
         return if (match != null) {
             KeyDecoder(match.args).decodeSerializableValue(match.serializer)
         } else {
-            Preferences.startPage.route
+            preferences.startPage.route
         }
     }
 }

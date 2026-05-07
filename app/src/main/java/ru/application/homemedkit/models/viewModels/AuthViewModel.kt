@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -17,22 +18,25 @@ import ru.application.homemedkit.network.Network
 import ru.application.homemedkit.network.models.auth.Token
 import ru.application.homemedkit.utils.BLANK
 import ru.application.homemedkit.utils.Formatter
+import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.ResourceText
 import ru.application.homemedkit.utils.WORK_AUTH_FIRST_TIME
-import ru.application.homemedkit.utils.di.Preferences
-import ru.application.homemedkit.utils.di.WorkManager
 import ru.application.homemedkit.utils.enums.SyncMode
 import ru.application.homemedkit.utils.extensions.awaitSyncWorkResult
 import ru.application.homemedkit.worker.WorkerManager
 
-class AuthViewModel(private val code: String?) : BaseViewModel<AuthStatus, Unit>() {
+class AuthViewModel(
+    private val code: String?,
+    private val preferences: Preferences,
+    private val workManager: WorkManager
+) : BaseViewModel<AuthStatus, Unit>() {
     override fun onEvent(event: Unit) = Unit
     override fun initState() = AuthStatus.Loading
 
     override fun loadData() {
         when {
-            Preferences.token != null -> {
-                if (Preferences.authIsYandex) {
+            preferences.token != null -> {
+                if (preferences.authIsYandex) {
                     checkConnection()
                 }
             }
@@ -46,7 +50,7 @@ class AuthViewModel(private val code: String?) : BaseViewModel<AuthStatus, Unit>
     private val _snackbarEvent = Channel<ResourceText>()
     val snackbarEvent = _snackbarEvent.receiveAsFlow()
 
-    val lastSync = Preferences.lastSyncMillisFlow.map { value ->
+    val lastSync = preferences.lastSyncMillisFlow.map { value ->
         if (value == -1L) {
             ResourceText.StringResource(R.string.text_unknown)
         } else {
@@ -73,8 +77,8 @@ class AuthViewModel(private val code: String?) : BaseViewModel<AuthStatus, Unit>
             val token = Network.Yandex.getToken(code)
 
             if (token != null) {
-                Preferences.saveToken(token)
-                Preferences.setAuthYandex(true)
+                preferences.saveToken(token)
+                preferences.setAuthYandex(true)
 
                 updateState { AuthStatus.Success }
 
@@ -95,10 +99,10 @@ class AuthViewModel(private val code: String?) : BaseViewModel<AuthStatus, Unit>
         showSyncModeDialog = false
 
         val uploadWork = WorkerManager.createSyncWork(mode)
-        WorkerManager.startSyncWork(WORK_AUTH_FIRST_TIME, uploadWork, ExistingWorkPolicy.KEEP)
+        WorkerManager.startSyncWork(workManager, WORK_AUTH_FIRST_TIME, uploadWork, ExistingWorkPolicy.KEEP)
 
         viewModelScope.launch {
-            WorkManager.awaitSyncWorkResult { isSuccess ->
+            workManager.awaitSyncWorkResult { isSuccess ->
                 val message = ResourceText.StringResource(
                     resourceId = if (isSuccess) R.string.text_sync_success
                     else R.string.text_sync_error
@@ -130,10 +134,10 @@ class AuthViewModel(private val code: String?) : BaseViewModel<AuthStatus, Unit>
 
             Network.Yandex.clearToken()
 
-            Preferences.saveToken(Token.empty)
-            Preferences.setAuthYandex(false)
-            Preferences.setAutoSync(false)
-            Preferences.updateSyncMillis(-1L)
+            preferences.saveToken(Token.empty)
+            preferences.setAuthYandex(false)
+            preferences.setAutoSync(false)
+            preferences.updateSyncMillis(-1L)
 
             updateState { AuthStatus.Nothing }
             showExitDialog = false

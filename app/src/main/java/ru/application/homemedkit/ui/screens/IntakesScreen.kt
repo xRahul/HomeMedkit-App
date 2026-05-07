@@ -75,7 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.application.homemedkit.R
@@ -107,7 +107,7 @@ import java.time.ZoneOffset
 
 @Composable
 fun IntakesScreen(onNavigate: (Long) -> Unit) {
-    val model = viewModel<IntakesViewModel>()
+    val model = koinViewModel<IntakesViewModel>()
 
     val state by model.state.collectAsStateWithLifecycle()
 

@@ -14,25 +14,30 @@ import me.zhanghai.compose.preference.isDefaultPreferenceFlowAndroidLongSupportE
 import ru.application.homemedkit.R.string.channel_exp_desc
 import ru.application.homemedkit.R.string.channel_intakes_desc
 import ru.application.homemedkit.R.string.channel_pre_desc
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.androidx.workmanager.koin.workManagerFactory
+import org.koin.core.context.startKoin
+import ru.application.homemedkit.di.appModule
 import ru.application.homemedkit.utils.CHANNEL_ID_EXP
 import ru.application.homemedkit.utils.CHANNEL_ID_INTAKES
 import ru.application.homemedkit.utils.CHANNEL_ID_PRE
 import ru.application.homemedkit.utils.coil.IconMapper
-import ru.application.homemedkit.utils.di.AppModule
-import ru.application.homemedkit.utils.di.AppModuleInitializer
 import ru.application.homemedkit.utils.extensions.createNotificationChannel
 
 
 class HomeMeds : Application(), SingletonImageLoader.Factory {
 
-    companion object {
-        lateinit var app: AppModule
-            private set
-    }
-
     override fun onCreate() {
         super.onCreate()
-        app = AppModuleInitializer(applicationContext)
+
+        startKoin {
+            androidLogger()
+            androidContext(this@HomeMeds)
+            workManagerFactory()
+            modules(appModule)
+        }
+
         isDefaultPreferenceFlowAndroidLongSupportEnabled = true
 
         mapOf(

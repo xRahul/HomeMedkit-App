@@ -8,6 +8,10 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ru.application.homemedkit.data.dao.AlarmDAO
+import ru.application.homemedkit.data.dao.IntakeDAO
+import ru.application.homemedkit.data.dao.IntakeDayDAO
+import ru.application.homemedkit.data.dao.MedicineDAO
 import ru.application.homemedkit.data.dto.Alarm
 import ru.application.homemedkit.data.dto.IntakeDay
 import ru.application.homemedkit.data.dto.IntakeTime
@@ -17,9 +21,8 @@ import ru.application.homemedkit.models.states.IntakeState
 import ru.application.homemedkit.models.validation.Validation
 import ru.application.homemedkit.utils.BLANK
 import ru.application.homemedkit.utils.Formatter
-import ru.application.homemedkit.utils.di.AlarmManager
-import ru.application.homemedkit.utils.di.Database
-import ru.application.homemedkit.utils.di.Preferences
+import ru.application.homemedkit.utils.Preferences
+import ru.application.homemedkit.receivers.AlarmSetter
 import ru.application.homemedkit.utils.enums.IntakeExtra
 import ru.application.homemedkit.utils.enums.Interval
 import ru.application.homemedkit.utils.enums.Interval.CUSTOM
@@ -43,9 +46,14 @@ import java.time.ZonedDateTime
 
 class IntakeViewModel(
    private val intakeId: Long,
-   private val medicineId: Long
+   private val medicineId: Long,
+   private val dao: IntakeDAO,
+   private val medicineDAO: MedicineDAO,
+   private val intakeDayDAO: IntakeDayDAO,
+   private val alarmDAO: AlarmDAO,
+   private val preferences: Preferences,
+   private val alarmManager: AlarmSetter
 ) : BaseViewModel<IntakeState, IntakeEvent>() {
-    private val dao by lazy { Database.intakeDAO() }
 
     override fun initState() = IntakeState()
 
@@ -57,7 +65,7 @@ class IntakeViewModel(
                     
                     updateState { state }
                 } else {
-                    Database.medicineDAO().getById(medicineId)?.let { medicine ->
+                    medicineDAO.getById(medicineId)?.let { medicine ->
                         updateState { 
                             it.copy(
                                 adding = true,
@@ -76,7 +84,7 @@ class IntakeViewModel(
     }
 
     fun setExitFirstLaunch() {
-        Preferences.setHasLaunched()
+        preferences.setHasLaunched()
         updateState { it.copy(isFirstLaunch = false) }
     }
 
@@ -86,7 +94,7 @@ class IntakeViewModel(
                 val intakeId = dao.insert(currentState.toIntake())
 
                 val days = currentState.pickedDays.map { IntakeDay(intakeId, it) }
-                Database.intakeDayDAO().insert(days)
+                intakeDayDAO.insert(days)
 
                 val current = ZonedDateTime.now()
                 val startDate = LocalDate.parse(currentState.startDate, Formatter.FORMAT_DD_MM_YYYY)
@@ -134,8 +142,8 @@ class IntakeViewModel(
                     }
                 }
 
-                Database.alarmDAO().insert(scheduled.sortedBy(Alarm::trigger))
-                AlarmManager.setPreAlarm(intakeId)
+                alarmDAO.insert(scheduled.sortedBy(Alarm::trigger))
+                alarmManager.setPreAlarm(intakeId)
 
                 updateState {
                     it.copy(
@@ -162,13 +170,13 @@ class IntakeViewModel(
             )
 
             viewModelScope.launch {
-                AlarmManager.removeAlarm(currentState.intakeId)
-                Database.alarmDAO().deleteByIntakeId(currentState.intakeId)
+                alarmManager.removeAlarm(currentState.intakeId)
+                alarmDAO.deleteByIntakeId(currentState.intakeId)
 
-                Database.intakeDayDAO().deleteByIntakeId(currentState.intakeId)
+                intakeDayDAO.deleteByIntakeId(currentState.intakeId)
 
                 val days = currentState.pickedDays.map { IntakeDay(currentState.intakeId, it) }
-                Database.intakeDayDAO().insert(days)
+                intakeDayDAO.insert(days)
 
                 if (finalDate >= LocalDateTime.now()) {
                     dao.deleteIntakeTime(currentState.intakeId)
@@ -219,8 +227,8 @@ class IntakeViewModel(
                         }
                     }
 
-                    Database.alarmDAO().insert(scheduled)
-                    AlarmManager.setPreAlarm(currentState.intakeId)
+                    alarmDAO.insert(scheduled)
+                    alarmManager.setPreAlarm(currentState.intakeId)
                 }
 
                 dao.update(currentState.toIntake())
@@ -243,7 +251,7 @@ class IntakeViewModel(
 
     fun delete(onBack: () -> Unit) {
         viewModelScope.launch {
-            AlarmManager.removeAlarm(currentState.intakeId)
+            alarmManager.removeAlarm(currentState.intakeId)
             dao.delete(currentState.toIntake())
 
             updateState { it.copy(showDialogDelete = false) }

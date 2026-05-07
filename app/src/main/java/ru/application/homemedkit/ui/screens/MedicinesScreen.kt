@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import ru.application.homemedkit.R
 import ru.application.homemedkit.R.string.text_exit_app
 import ru.application.homemedkit.R.string.text_no
@@ -79,7 +79,7 @@ import ru.application.homemedkit.utils.enums.Sorting
 import ru.application.homemedkit.utils.extensions.drawHorizontalDivider
 
 @Composable
-fun MedicinesScreen(model: MedicinesViewModel = viewModel(), onNavigate: (Screen) -> Unit) {
+fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Screen) -> Unit) {
     val activity = LocalActivity.current as? ComponentActivity
 
     val state by model.state.collectAsStateWithLifecycle()

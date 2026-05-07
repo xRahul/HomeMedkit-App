@@ -1,33 +1,15 @@
 package ru.application.homemedkit.utils.di
 
-import android.content.Context
 import androidx.work.WorkManager
-import ru.application.homemedkit.HomeMeds.Companion.app
+import org.koin.core.context.GlobalContext
 import ru.application.homemedkit.data.MedicineDatabase
 import ru.application.homemedkit.receivers.AlarmSetter
 import ru.application.homemedkit.utils.Preferences
 
-interface AppModule {
-    val database: MedicineDatabase
-    val preferences: Preferences
-    val alarmManager: AlarmSetter
-    val workManager: WorkManager
-}
+val Database: MedicineDatabase get() = GlobalContext.get().get()
 
-class AppModuleInitializer(context: Context) : AppModule {
-    override val database by lazy { MedicineDatabase.getInstance(context) }
+val Preferences: Preferences get() = GlobalContext.get().get()
 
-    override val preferences by lazy { Preferences.getInstance(context) }
+val AlarmManager: AlarmSetter get() = GlobalContext.get().get()
 
-    override val alarmManager by lazy { AlarmSetter.getInstance(context) }
-
-    override val workManager by lazy { WorkManager.getInstance(context) }
-}
-
-val Database: MedicineDatabase get() = app.database
-
-val Preferences: Preferences get() = app.preferences
-
-val AlarmManager: AlarmSetter get() = app.alarmManager
-
-val WorkManager: WorkManager get() = app.workManager
+val WorkManager: WorkManager get() = GlobalContext.get().get()

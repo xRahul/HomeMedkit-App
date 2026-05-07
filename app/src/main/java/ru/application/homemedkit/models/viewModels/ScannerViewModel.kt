@@ -7,23 +7,24 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import ru.application.homemedkit.data.dao.MedicineDAO
 import ru.application.homemedkit.models.events.Response
 import ru.application.homemedkit.models.events.ScannerEvent
 import ru.application.homemedkit.models.states.ScannerState
 import ru.application.homemedkit.network.Network
-import ru.application.homemedkit.utils.di.Database
 import ru.application.homemedkit.utils.extensions.asMedicine
 import ru.application.homemedkit.utils.getMedicineImages
 import java.io.File
 
-class ScannerViewModel : BaseViewModel<ScannerState, Unit>() {
+class ScannerViewModel(
+    private val dao: MedicineDAO
+) : BaseViewModel<ScannerState, Unit>() {
     override fun initState() = ScannerState.Default
 
     override fun loadData() = Unit
 
     override fun onEvent(event: Unit) = Unit
 
-    private val dao by lazy { Database.medicineDAO() }
     private val mutex = Mutex()
 
     private val _event = Channel<ScannerEvent>()

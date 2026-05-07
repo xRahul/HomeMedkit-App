@@ -23,10 +23,14 @@ import ru.application.homemedkit.utils.TYPE
 import ru.application.homemedkit.utils.extensions.goAsync
 import ru.application.homemedkit.utils.extensions.safeNotify
 
-class AlarmReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) = goAsync {
-        val database = MedicineDatabase.getInstance(context)
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
+class AlarmReceiver : BroadcastReceiver(), KoinComponent {
+    private val database: MedicineDatabase by inject()
+    private val alarmSetter: AlarmSetter by inject()
+
+    override fun onReceive(context: Context, intent: Intent) = goAsync {
         val takenId = intent.getLongExtra(ALARM_ID, 0L)
 
         val taken = database.takenDAO().getById(takenId) ?: return@goAsync
@@ -47,7 +51,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val confirm = createAction(context, pendingB, R.string.intake_text_taken)
         val decline = createAction(context, pendingA, R.string.intake_text_not_taken)
 
-        AlarmSetter.getInstance(context).setPreAlarm(intake.intakeId)
+        alarmSetter.setPreAlarm(intake.intakeId)
 
         if (!taken.notified) {
             with(NotificationManagerCompat.from(context)) {
