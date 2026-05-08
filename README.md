@@ -10,9 +10,9 @@
 
 <div align="center">
 
-[<img src="RuStore.svg" align="top" alt="Скачайте в RuStore" height=80px/>](https://www.rustore.ru/catalog/app/ru.application.homemedkit) 
-[<img src="IzzyOnDroid.png" align="top" alt="Get it on IzzyOnDroid" height=80px/>](https://apt.izzysoft.de/fdroid/index/apk/ru.application.homemedkit)
-[<img src="F-Droid.svg" align="top" alt="Get it on F-Droid" height="80px">](https://f-droid.org/packages/ru.application.homemedkit)
+[<img src="RuStore.svg" align="top" alt="Скачайте в RuStore" height=80px/>](https://www.rustore.ru/catalog/app/in.rahulja.medicinekit) 
+[<img src="IzzyOnDroid.png" align="top" alt="Get it on IzzyOnDroid" height=80px/>](https://apt.izzysoft.de/fdroid/index/apk/in.rahulja.medicinekit)
+[<img src="F-Droid.svg" align="top" alt="Get it on F-Droid" height="80px">](https://f-droid.org/packages/in.rahulja.medicinekit)
 
 </div>
 

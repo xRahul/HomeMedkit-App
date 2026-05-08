@@ -1,0 +1,198 @@
+package `in`.rahulja.medicinekit.utils
+
+import android.content.Context
+import androidx.core.content.edit
+import kotlinx.coroutines.flow.Flow
+import `in`.rahulja.medicinekit.network.models.auth.Token
+import `in`.rahulja.medicinekit.utils.di.AlarmManager
+import `in`.rahulja.medicinekit.utils.enums.AiMode
+import `in`.rahulja.medicinekit.utils.enums.MedicineListView
+import `in`.rahulja.medicinekit.utils.enums.Page
+import `in`.rahulja.medicinekit.utils.enums.Sorting
+import `in`.rahulja.medicinekit.utils.enums.Theme
+import `in`.rahulja.medicinekit.utils.extensions.getEnum
+import `in`.rahulja.medicinekit.utils.extensions.getEnumFlow
+import `in`.rahulja.medicinekit.utils.extensions.getFlow
+import `in`.rahulja.medicinekit.utils.extensions.putEnum
+
+class Preferences internal constructor(context: Context) {
+    private val preferences = context.getSharedPreferences("${context.packageName}_preferences", Context.MODE_PRIVATE)
+
+    val kitsFilter: Set<String>?
+        get() = preferences.getStringSet(KEY_KITS_FILTER, emptySet())
+
+    val startPage: Page
+        get() = preferences.getEnum(KEY_START_PAGE, Page.MEDICINES)
+
+    val startPageFlow: Flow<Page>
+        get() = preferences.getEnumFlow(KEY_START_PAGE, Page.MEDICINES)
+
+    val sortingOrder: Sorting
+        get() = preferences.getEnum(KEY_ORDER, Sorting.IN_NAME)
+
+    val sortingOrderFlow: Flow<Sorting>
+        get() = preferences.getEnumFlow(KEY_ORDER, Sorting.IN_NAME)
+
+    val hideEmptyMedicines: Boolean
+        get() = preferences.getBoolean(KEY_HIDE_EMPTY_MEDICINES, false)
+
+    val medicinesListView: MedicineListView
+        get() = preferences.getEnum(KEY_MEDICINES_LIST_VIEW, MedicineListView.LIST)
+
+    val confirmExit: Boolean
+        get() = preferences.getBoolean(KEY_CONFIRM_EXIT, true)
+
+    val useVibrationScan: Boolean
+        get() = preferences.getBoolean(KEY_USE_VIBRATION_SCAN, false)
+
+    val imageFetch: Boolean
+        get() = preferences.getBoolean(KEY_DOWNLOAD, true)
+
+    val useAi: Boolean
+        get() = preferences.getBoolean(KEY_USE_AI, false)
+
+    val useAiFlow: Flow<Boolean>
+        get() = preferences.getFlow(KEY_USE_AI, false)
+
+    val aiMode: AiMode
+        get() = preferences.getEnum(KEY_AI_MODE, AiMode.ML_KIT)
+
+    val aiModeFlow: Flow<AiMode>
+        get() = preferences.getEnumFlow(KEY_AI_MODE, AiMode.ML_KIT)
+
+    val geminiApiKey: String
+        get() = preferences.getString(KEY_GEMINI_API_KEY, BLANK) ?: BLANK
+
+    val checkExpiration: Boolean
+        get() = preferences.getBoolean(KEY_CHECK_EXP_DATE, false)
+
+    val checkExpirationFlow: Flow<Boolean>
+        get() = preferences.getFlow(KEY_CHECK_EXP_DATE, false)
+
+    val useAlarmClock: Boolean
+        get() = preferences.getBoolean(KEY_USE_ALARM_CLOCK, false)
+
+    val autoIntakeReschedule: Boolean
+        get() = preferences.getBoolean(KEY_AUTO_CHANGE_INTAKE_WHEN_TIME_CHANGE, false)
+
+    val language: String?
+        get() = preferences.getString(KEY_LANGUAGE, null)
+
+    val theme: Flow<Theme>
+        get() = preferences.getEnumFlow(KEY_APP_THEME, Theme.SYSTEM)
+
+    val dynamicColors: Flow<Boolean>
+        get() = preferences.getFlow(KEY_DYNAMIC_COLOR, false)
+
+    val isFirstLaunch: Boolean
+        get() = preferences.getBoolean(KEY_FIRST_LAUNCH_INTAKE, true)
+
+    val wasDataImported: Boolean
+        get() = preferences.getBoolean(KEY_IMPORTED_DATA, false)
+
+    val codeVerifier: String?
+        get() = preferences.getString(KEY_CODE_VERIFIER, null)
+
+    val authIsYandex: Boolean
+        get() = preferences.getBoolean(KEY_AUTH_IS_YANDEX, false)
+
+    val lastSyncMillis: Long
+        get() = preferences.getLong(KEY_LAST_SYNC_MILLIS, -1L)
+
+    val lastSyncMillisFlow: Flow<Long>
+        get() = preferences.getFlow(KEY_LAST_SYNC_MILLIS, -1L)
+
+    val isAutoSyncEnabled: Boolean
+        get() = preferences.getBoolean(KEY_AUTO_SYNC_ENABLED, false)
+
+    val token: Token?
+        get() {
+            val accessToken = preferences.getString(KEY_ACCESS_TOKEN, BLANK)
+            val refreshToken = preferences.getString(KEY_REFRESH_TOKEN, BLANK)
+
+            if (accessToken.isNullOrBlank() || refreshToken.isNullOrBlank())
+                return null
+
+            return Token(accessToken, refreshToken)
+        }
+
+    fun setHideEmptyMedicines(hide: Boolean) = preferences.edit {
+        putBoolean(KEY_HIDE_EMPTY_MEDICINES, hide)
+    }
+
+    fun setStartPage(page: Page) = preferences.edit { putEnum(KEY_START_PAGE, page) }
+
+    fun setSortingType(type: Sorting) = preferences.edit { putEnum(KEY_ORDER, type) }
+
+    fun setHasLaunched() = preferences.edit { putBoolean(KEY_FIRST_LAUNCH_INTAKE, false) }
+
+    fun setMedicinesListView(view: MedicineListView) = preferences.edit {
+        putEnum(KEY_MEDICINES_LIST_VIEW, view)
+    }
+
+    fun setUseAi(useAi: Boolean) = preferences.edit {
+        putBoolean(KEY_USE_AI, useAi)
+    }
+
+    fun setAiMode(mode: AiMode) = preferences.edit {
+        putEnum(KEY_AI_MODE, mode)
+    }
+
+    fun setGeminiApiKey(key: String) = preferences.edit {
+        putString(KEY_GEMINI_API_KEY, key)
+    }
+
+    fun saveKitsFilter(kitsId: Set<String>) = preferences.edit {
+        putStringSet(KEY_KITS_FILTER, kitsId)
+    }
+
+    fun setCheckExpDate(check: Boolean) {
+        preferences.edit { putBoolean(KEY_CHECK_EXP_DATE, check) }
+        AlarmManager.checkExpiration(check)
+    }
+
+    fun setLanguage(locale: String) = preferences.edit { putString(KEY_LANGUAGE, locale) }
+
+    fun addImportedKey() = preferences.edit(commit = true) {
+        putBoolean(KEY_IMPORTED_DATA, true)
+    }
+
+    fun removeImportedKey() = preferences.edit {
+        remove(KEY_IMPORTED_DATA)
+    }
+
+    fun updateSyncMillis(millis: Long = System.currentTimeMillis()) = preferences.edit {
+        putLong(KEY_LAST_SYNC_MILLIS, millis)
+    }
+
+    fun setAutoSync(enabled: Boolean = false) = preferences.edit {
+        putBoolean(KEY_AUTO_SYNC_ENABLED, enabled)
+    }
+
+    fun setTheme(theme: Theme) = preferences.edit {
+        putEnum(KEY_APP_THEME, theme)
+    }
+
+    fun saveCodeVerifier(verifier: String) = preferences.edit {
+        putString(KEY_CODE_VERIFIER, verifier)
+    }
+
+    fun removeCodeVerifier() = preferences.edit {
+        remove(KEY_CODE_VERIFIER)
+    }
+
+    fun saveToken(token: Token) = preferences.edit(commit = true) {
+        putString(KEY_ACCESS_TOKEN, token.accessToken)
+        putString(KEY_REFRESH_TOKEN, token.refreshToken)
+    }
+
+    fun setAuthYandex(flag: Boolean) = preferences.edit { putBoolean(KEY_AUTH_IS_YANDEX, flag) }
+
+    companion object {
+        @Volatile
+        private var INSTANCE: Preferences? = null
+
+        fun getInstance(context: Context) =
+            INSTANCE ?: synchronized(this) { Preferences(context) }.also { INSTANCE = it }
+    }
+}

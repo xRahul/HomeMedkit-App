@@ -7,15 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "ru.application.homemedkit"
+    namespace = "in.rahulja.medicinekit"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "ru.application.homemedkit"
+        applicationId = "in.rahulja.medicinekit"
         minSdk = 26
         targetSdk = 37
-        versionCode = 71
-        versionName = "1.9.6"
+        versionCode = 10
+        versionName = "1.0.0"
     }
 
     dependenciesInfo {

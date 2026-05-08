@@ -155,18 +155,18 @@ jobs:
       - name: 'Rename artifacts'
         run: |
           SIGNED_APK_FILE=$(find ${{ steps.sign_apk.outputs.signedFile }} -name '*.apk' | head -n 1)
-          mv "$SIGNED_APK_FILE" "HomeMedkit.apk"
+          mv "$SIGNED_APK_FILE" "MedicineKit.apk"
           
           SIGNED_AAB_FILE=$(find ${{ steps.sign_aab.outputs.signedFile }} -name '*.aab' | head -n 1)
-          mv "$SIGNED_AAB_FILE" "HomeMedkit.aab"
+          mv "$SIGNED_AAB_FILE" "MedicineKit.aab"
 
       - name: 'Upload artifacts'
         uses: actions/upload-artifact@v7
         with:
           name: release-artifacts
           path: |
-            HomeMedkit.apk
-            HomeMedkit.aab
+            MedicineKit.apk
+            MedicineKit.aab
 
   create-release:
     name: Create GitHub Release
@@ -215,5 +215,5 @@ jobs:
           name: Release ${{ needs.bump-version.outputs.version_name }}
           body: ${{ steps.changelog.outputs.body }}
           files: |
-            HomeMedkit.apk
-            HomeMedkit.aab
+            MedicineKit.apk
+            MedicineKit.aab

@@ -1,0 +1,111 @@
+package `in`.rahulja.medicinekit.models.viewModels
+
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import `in`.rahulja.medicinekit.data.dao.MedicineDAO
+import `in`.rahulja.medicinekit.models.events.Response
+import `in`.rahulja.medicinekit.models.events.ScannerEvent
+import `in`.rahulja.medicinekit.models.states.ScannerState
+import `in`.rahulja.medicinekit.network.Network
+import `in`.rahulja.medicinekit.utils.extensions.asMedicine
+import `in`.rahulja.medicinekit.utils.getMedicineImages
+import java.io.File
+
+class ScannerViewModel(
+    private val dao: MedicineDAO
+) : BaseViewModel<ScannerState, Unit>() {
+    override fun initState() = ScannerState.Default
+
+    override fun loadData() = Unit
+
+    override fun onEvent(event: Unit) = Unit
+
+    private val mutex = Mutex()
+
+    private val _event = Channel<ScannerEvent>()
+    val event = _event.receiveAsFlow()
+
+    fun fetch(dir: File, code: String) {
+        if (currentState != ScannerState.Default) return
+
+        viewModelScope.launch {
+            mutex.withLock {
+                if (currentState != ScannerState.Default) return@launch
+
+                val normalizedCode = with(code) {
+                    val startIndex = indexOf("01")
+                    if (startIndex == -1 || length < startIndex + 31) {
+                        return@with null
+                    }
+
+                    val sgtin = substring(startIndex, startIndex + 31)
+                    if (sgtin.substring(16, 18) != "21") {
+                        return@with null
+                    }
+
+                    sgtin
+                }
+
+                if (normalizedCode == null) {
+                    _event.send(ScannerEvent.ShowSnackbar.IncorrectCode)
+                    awaitCancellation()
+                }
+
+                val duplicateId = dao.findDuplicate(normalizedCode)
+                if (duplicateId != null) {
+                    _event.send(ScannerEvent.Navigate(duplicateId, null, true))
+                    awaitCancellation()
+                }
+
+                updateState { ScannerState.Loading }
+                try {
+                    when (val response = Network.getMedicine(code)) {
+                        is Response.Success -> {
+                            val model = response.model
+
+                            if (model.category == "drugs" || model.category == "bio") {
+                                val medicine = model.asMedicine().copy(cis = code)
+
+                                val id = dao.insert(medicine)
+                                val images = getMedicineImages(
+                                    medicineId = id,
+                                    form = medicine.prodFormNormName,
+                                    directory = dir,
+                                    urls = response.model.imageUrls
+                                )
+
+                                dao.updateImages(images)
+
+                                _event.send(ScannerEvent.Navigate(id))
+                                awaitCancellation()
+                            } else {
+                                _event.send(ScannerEvent.ShowSnackbar.IncorrectCode)
+                            }
+                        }
+
+                        is Response.Error.NetworkError -> {
+                            updateState { ScannerState.ShowDialog(response.code) }
+                        }
+
+                        is Response.Error -> {
+                            _event.send(ScannerEvent.ShowSnackbar.UnknownError(response.message))
+                        }
+                    }
+                } catch (_: Exception) {
+                    _event.send(ScannerEvent.ShowSnackbar.UnknownError())
+                } finally {
+                    if (currentState !is ScannerState.ShowDialog) {
+                        updateState { ScannerState.Idle }
+                    }
+                }
+            }
+        }
+    }
+
+    fun setDefault() = updateState { ScannerState.Default }
+}

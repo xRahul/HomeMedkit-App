@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "HomeMeds"
+rootProject.name = "MedicineKit"
 include(":app")

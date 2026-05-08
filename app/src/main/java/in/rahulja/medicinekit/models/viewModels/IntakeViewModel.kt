@@ -1,0 +1,595 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package `in`.rahulja.medicinekit.models.viewModels
+
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TimePickerState
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import `in`.rahulja.medicinekit.data.dao.AlarmDAO
+import `in`.rahulja.medicinekit.data.dao.IntakeDAO
+import `in`.rahulja.medicinekit.data.dao.IntakeDayDAO
+import `in`.rahulja.medicinekit.data.dao.MedicineDAO
+import `in`.rahulja.medicinekit.data.dto.Alarm
+import `in`.rahulja.medicinekit.data.dto.IntakeDay
+import `in`.rahulja.medicinekit.data.dto.IntakeTime
+import `in`.rahulja.medicinekit.data.model.IntakeAmountTime
+import `in`.rahulja.medicinekit.models.events.IntakeEvent
+import `in`.rahulja.medicinekit.models.states.IntakeState
+import `in`.rahulja.medicinekit.models.validation.Validation
+import `in`.rahulja.medicinekit.utils.BLANK
+import `in`.rahulja.medicinekit.utils.Formatter
+import `in`.rahulja.medicinekit.utils.Preferences
+import `in`.rahulja.medicinekit.receivers.AlarmSetter
+import `in`.rahulja.medicinekit.utils.enums.IntakeExtra
+import `in`.rahulja.medicinekit.utils.enums.Interval
+import `in`.rahulja.medicinekit.utils.enums.Interval.CUSTOM
+import `in`.rahulja.medicinekit.utils.enums.Interval.DAILY
+import `in`.rahulja.medicinekit.utils.enums.Interval.WEEKLY
+import `in`.rahulja.medicinekit.utils.enums.Period
+import `in`.rahulja.medicinekit.utils.enums.Period.INDEFINITE
+import `in`.rahulja.medicinekit.utils.enums.Period.OTHER
+import `in`.rahulja.medicinekit.utils.enums.Period.PICK
+import `in`.rahulja.medicinekit.utils.enums.SchemaType
+import `in`.rahulja.medicinekit.utils.extensions.concat
+import `in`.rahulja.medicinekit.utils.extensions.toIntake
+import `in`.rahulja.medicinekit.utils.extensions.toMedicineIntake
+import `in`.rahulja.medicinekit.utils.extensions.toState
+import `in`.rahulja.medicinekit.utils.extensions.toggle
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZonedDateTime
+
+class IntakeViewModel(
+   private val intakeId: Long,
+   private val medicineId: Long,
+   private val dao: IntakeDAO,
+   private val medicineDAO: MedicineDAO,
+   private val intakeDayDAO: IntakeDayDAO,
+   private val alarmDAO: AlarmDAO,
+   private val preferences: Preferences,
+   private val alarmManager: AlarmSetter
+) : BaseViewModel<IntakeState, IntakeEvent>() {
+
+    override fun initState() = IntakeState()
+
+    override fun loadData() {
+        viewModelScope.launch { 
+            with(dao.getById(intakeId)) {
+                if (this != null) {
+                    val state = withContext(Dispatchers.Main) { toState() }
+                    
+                    updateState { state }
+                } else {
+                    medicineDAO.getById(medicineId)?.let { medicine ->
+                        updateState { 
+                            it.copy(
+                                adding = true,
+                                isLoading = false,
+                                medicineId = medicine.id,
+                                medicine = medicine.toMedicineIntake(),
+                                amountStock = medicine.prodAmount.toString(),
+                                doseType = medicine.doseType.title,
+                                image = medicine.images.firstOrNull()?.image.orEmpty()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun setExitFirstLaunch() {
+        preferences.setHasLaunched()
+        updateState { it.copy(isFirstLaunch = false) }
+    }
+
+    fun add() {
+        if (validate()) {
+            viewModelScope.launch {
+                val intakeId = dao.insert(currentState.toIntake())
+
+                val days = currentState.pickedDays.map { IntakeDay(intakeId, it) }
+                intakeDayDAO.insert(days)
+
+                val current = ZonedDateTime.now()
+                val startDate = LocalDate.parse(currentState.startDate, Formatter.FORMAT_DD_MM_YYYY)
+                val finalDate = LocalDate.parse(currentState.finalDate, Formatter.FORMAT_DD_MM_YYYY)
+
+                val scheduled = mutableListOf<Alarm>()
+
+                currentState.pickedTime.forEach { pickedTime ->
+                    val localTime = LocalTime.of(pickedTime.picker.hour, pickedTime.picker.minute)
+
+                    var initial = ZonedDateTime.of(startDate, localTime, Formatter.ZONE)
+                    val finish = ZonedDateTime.of(finalDate, localTime, Formatter.ZONE)
+
+                    initial = if (initial.isAfter(current)) initial else {
+                        val todayTime = ZonedDateTime.of(current.toLocalDate(), localTime, Formatter.ZONE)
+
+                        if (todayTime.isAfter(current)) {
+                            todayTime
+                        } else {
+                            todayTime.plusDays(1)
+                        }
+                    }
+
+                    dao.addIntakeTime(
+                        IntakeTime(
+                            intakeId = intakeId,
+                            time = pickedTime.time,
+                            amount = pickedTime.amount.toDouble()
+                        )
+                    )
+
+                    while (!initial.isAfter(finish)) {
+                        if (initial.dayOfWeek in currentState.pickedDays) {
+                            scheduled.add(
+                                Alarm(
+                                    intakeId = intakeId,
+                                    trigger = initial.toInstant().toEpochMilli(),
+                                    amount = pickedTime.amount.toDouble(),
+                                    preAlarm = currentState.preAlarm
+                                )
+                            )
+                        }
+
+                        initial = initial.plusDays(currentState.interval.toLong())
+                    }
+                }
+
+                alarmDAO.insert(scheduled.sortedBy(Alarm::trigger))
+                alarmManager.setPreAlarm(intakeId)
+
+                updateState {
+                    it.copy(
+                        intakeId = intakeId,
+                        adding = false,
+                        default = true,
+                        amountError = null,
+                        intervalError = null,
+                        periodError = null,
+                        startDateError = null,
+                        finalDateError = null,
+                        timesError = null
+                    )
+                }
+            }
+        }
+    }
+
+    fun update() {
+        if (validate()) {
+            val finalDate = LocalDateTime.of(
+                /* date = */ LocalDate.parse(currentState.finalDate, Formatter.FORMAT_DD_MM_YYYY),
+                /* time = */ LocalTime.parse(currentState.pickedTime.last().time, Formatter.FORMAT_H_MM)
+            )
+
+            viewModelScope.launch {
+                alarmManager.removeAlarm(currentState.intakeId)
+                alarmDAO.deleteByIntakeId(currentState.intakeId)
+
+                intakeDayDAO.deleteByIntakeId(currentState.intakeId)
+
+                val days = currentState.pickedDays.map { IntakeDay(currentState.intakeId, it) }
+                intakeDayDAO.insert(days)
+
+                if (finalDate >= LocalDateTime.now()) {
+                    dao.deleteIntakeTime(currentState.intakeId)
+
+                    val current = ZonedDateTime.now()
+                    val startDate = LocalDate.parse(currentState.startDate, Formatter.FORMAT_DD_MM_YYYY)
+                    val finalDate = LocalDate.parse(currentState.finalDate, Formatter.FORMAT_DD_MM_YYYY)
+
+                    val scheduled = mutableListOf<Alarm>()
+
+                    currentState.pickedTime.forEach { pickedTime ->
+                        val localTime = LocalTime.of(pickedTime.picker.hour, pickedTime.picker.minute)
+
+                        var initial = ZonedDateTime.of(startDate, localTime, Formatter.ZONE)
+                        val finish = ZonedDateTime.of(finalDate, localTime, Formatter.ZONE)
+
+                        initial = if (initial.isAfter(current)) initial else {
+                            val todayTime = ZonedDateTime.of(current.toLocalDate(), localTime, Formatter.ZONE)
+
+                            if (todayTime.isAfter(current)) {
+                                todayTime
+                            } else {
+                                todayTime.plusDays(1)
+                            }
+                        }
+
+                        dao.addIntakeTime(
+                            IntakeTime(
+                                intakeId = currentState.intakeId,
+                                time = pickedTime.time,
+                                amount = pickedTime.amount.toDouble()
+                            )
+                        )
+
+                        while (!initial.isAfter(finish)) {
+                            if (initial.dayOfWeek in currentState.pickedDays) {
+                                scheduled.add(
+                                    Alarm(
+                                        intakeId = currentState.intakeId,
+                                        trigger = initial.toInstant().toEpochMilli(),
+                                        amount = pickedTime.amount.toDouble(),
+                                        preAlarm = currentState.preAlarm
+                                    )
+                                )
+                            }
+
+                            initial = initial.plusDays(currentState.interval.toLong())
+                        }
+                    }
+
+                    alarmDAO.insert(scheduled)
+                    alarmManager.setPreAlarm(currentState.intakeId)
+                }
+
+                dao.update(currentState.toIntake())
+                updateState {
+                    it.copy(
+                        adding = false,
+                        editing = false,
+                        default = true,
+                        amountError = null,
+                        intervalError = null,
+                        periodError = null,
+                        startDateError = null,
+                        finalDateError = null,
+                        timesError = null
+                    )
+                }
+            }
+        }
+    }
+
+    fun delete(onBack: () -> Unit) {
+        viewModelScope.launch {
+            alarmManager.removeAlarm(currentState.intakeId)
+            dao.delete(currentState.toIntake())
+
+            updateState { it.copy(showDialogDelete = false) }
+
+            onBack()
+        }
+    }
+
+    override fun onEvent(event: IntakeEvent) {
+        when (event) {
+            is IntakeEvent.SetAmount -> {
+                val pickedTime = with(currentState) {
+                    pickedTime.mapIndexed { index, time ->
+                        if (sameAmount) {
+                            time.copy(amount = event.amount)
+                        } else {
+                            if (index != event.index) time
+                            else time.copy(amount = event.amount)
+                        }
+                    }
+                }
+
+                updateState { it.copy(pickedTime = pickedTime) }
+            }
+
+            is IntakeEvent.SetInterval -> {
+                when (val interval = event.interval) {
+                    is Interval -> when (interval) {
+                        DAILY, WEEKLY -> updateState {
+                            it.copy(
+                                interval = interval.days.toString(),
+                                intervalType = interval,
+                                showIntervalTypePicker = false
+                            )
+                        }
+
+                        CUSTOM -> updateState {
+                            it.copy(
+                                interval = BLANK,
+                                intervalType = interval,
+                                showIntervalTypePicker = false
+                            )
+                        }
+                    }
+
+                    is String -> updateState { it.copy(interval = interval) }
+                }
+            }
+
+            is IntakeEvent.SetPeriod -> {
+                when (val period = event.period) {
+                    is Period -> when(period) {
+                        PICK -> updateState {
+                            it.copy(
+                                period = period.days.toString(),
+                                periodType = period,
+                                startDate = BLANK,
+                                finalDate = BLANK,
+                                showPeriodTypePicker = false
+                            )
+                        }
+
+                        OTHER -> updateState {
+                            it.copy(
+                                period = BLANK,
+                                periodType = period,
+                                startDate = BLANK,
+                                finalDate = BLANK,
+                                showPeriodTypePicker = false
+                            )
+                        }
+
+                        INDEFINITE -> updateState {
+                            it.copy(
+                                startDate = LocalDate.now().format(Formatter.FORMAT_DD_MM_YYYY),
+                                finalDate = LocalDate.now().plusDays(period.days.toLong()).format(Formatter.FORMAT_DD_MM_YYYY),
+                                period = period.days.toString(),
+                                periodType = period,
+                                showPeriodTypePicker = false
+                            )
+                        }
+                    }
+
+                    is String -> if (period.isNotEmpty()) {
+                        val start = currentState.startDate.ifEmpty { LocalDate.now().format(Formatter.FORMAT_DD_MM_YYYY) }
+                        val finish = LocalDate.parse(start, Formatter.FORMAT_DD_MM_YYYY)
+                            .plusDays(period.toLong() - 1)
+                            .format(Formatter.FORMAT_DD_MM_YYYY)
+
+                        updateState {
+                            it.copy(
+                                startDate = start,
+                                finalDate = finish,
+                                period = period
+                            )
+                        }
+                    } else {
+                        updateState {
+                            it.copy(startDate = BLANK, finalDate = BLANK, period = BLANK)
+                        }
+                    }
+
+                    is Pair<*, *> -> if (period.first != null && period.second != null) updateState {
+                        it.copy(
+                            startDate = Formatter.dateFormat(period.first as Long, Formatter.FORMAT_DD_MM_YYYY),
+                            finalDate = Formatter.dateFormat(period.second as Long, Formatter.FORMAT_DD_MM_YYYY),
+                            period = PICK.days.toString()
+                        )
+                    }
+                }
+            }
+
+            is IntakeEvent.SetStartDate -> {
+                val period = currentState.period.let {
+                    if (it.isEmpty()) 1L
+                    else it.toLong() - 1
+                }
+                val time = Formatter.getDateTime(event.millis)
+                val start = time.format(Formatter.FORMAT_DD_MM_YYYY)
+                val finish = time.plusDays(period).format(Formatter.FORMAT_DD_MM_YYYY)
+
+                updateState {
+                    it.copy(
+                        startDate = start,
+                        finalDate = finish,
+                        showDatePicker = false
+                    )
+                }
+            }
+
+            is IntakeEvent.SetFoodType -> {
+                updateState {
+                    it.copy(foodType = if (event.type == currentState.foodType) -1 else event.type)
+                }
+            }
+
+            IntakeEvent.IncTime -> {
+                val pickedTime = with(currentState.pickedTime) {
+                    concat(
+                        element = IntakeAmountTime(
+                            amount = firstOrNull()?.amount.orEmpty(),
+                            time = BLANK,
+                            picker = TimePickerState(12, 0, true)
+                        )
+                    )
+                }
+
+                updateState {
+                    it.copy(pickedTime = pickedTime)
+                }
+            }
+            IntakeEvent.DecTime -> {
+                val pickedTime = with(currentState.pickedTime) {
+                    if (size > 1) dropLast(1)
+                    else this
+                }
+
+                updateState {
+                    it.copy(pickedTime = pickedTime)
+                }
+
+            }
+
+            is IntakeEvent.ShowDialogDescription -> {
+                updateState {
+                    it.copy(
+                        extraDesc = event.description,
+                        showDialogDescription = !it.showDialogDescription
+                    )
+                }
+            }
+            is IntakeEvent.ShowDialogDelete -> {
+                updateState { it.copy(showDialogDelete = !it.showDialogDelete) }
+            }
+            is IntakeEvent.ShowDialogDataLoss -> {
+                updateState { it.copy(showDialogDataLoss = event.flag) }
+            }
+
+
+            is IntakeEvent.ShowSchemaTypePicker -> {
+                updateState { it.copy(showSchemaTypePicker = !it.showSchemaTypePicker) }
+            }
+            is IntakeEvent.ShowDatePicker -> {
+                if (currentState.periodType == PICK) {
+                    updateState {
+                        it.copy(showDateRangePicker = !it.showDateRangePicker)
+                    }
+                }
+
+                if (currentState.periodType == OTHER) {
+                    updateState {
+                        it.copy(showDatePicker = !it.showDatePicker)
+                    }
+                }
+            }
+            is IntakeEvent.ShowPeriodTypePicker -> {
+                updateState { it.copy(showPeriodTypePicker = !it.showPeriodTypePicker) }
+            }
+            is IntakeEvent.ShowIntervalTypePicker -> {
+                updateState { it.copy(showIntervalTypePicker = !it.showIntervalTypePicker) }
+            }
+            is IntakeEvent.ShowTimePicker -> {
+                updateState {
+                    it.copy(
+                        showTimePicker = !it.showTimePicker,
+                        timePickerIndex = event.index
+                    )
+                }
+            }
+
+            is IntakeEvent.SetSchemaType -> {
+                when (event.type) {
+                    SchemaType.INDEFINITELY -> {
+                        updateState {
+                            it.copy(
+                                startDate = LocalDate.now().format(Formatter.FORMAT_DD_MM_YYYY),
+                                finalDate = LocalDate.now().plusDays(INDEFINITE.days.toLong()).format(Formatter.FORMAT_DD_MM_YYYY),
+                                interval = DAILY.days.toString(),
+                                period = INDEFINITE.days.toString(),
+                                pickedDays = DayOfWeek.entries,
+                                schemaType = event.type,
+                                showSchemaTypePicker = false
+                            )
+                        }
+                    }
+
+                    SchemaType.BY_DAYS -> updateState {
+                        it.copy(
+                            startDate = BLANK,
+                            finalDate = BLANK,
+                            interval = DAILY.days.toString(),
+                            period = BLANK,
+                            pickedDays = DayOfWeek.entries,
+                            schemaType = event.type,
+                            showSchemaTypePicker = false
+                        )
+                    }
+
+                    SchemaType.PERSONAL -> updateState {
+                        it.copy(
+                            startDate = BLANK,
+                            finalDate = BLANK,
+                            interval = DAILY.days.toString(),
+                            period = BLANK,
+                            pickedDays = DayOfWeek.entries,
+                            schemaType = event.type,
+                            showSchemaTypePicker = false
+                        )
+                    }
+                }
+            }
+            is IntakeEvent.SetPickedDay -> {
+                val toggled = currentState.pickedDays.toggle(event.day)
+                val pickedDays = toggled.ifEmpty { DayOfWeek.entries }
+
+                updateState {
+                    it.copy(
+                        pickedDays = pickedDays.sorted()
+                    )
+                }
+            }
+            is IntakeEvent.SetPickedTime -> {
+                val pickerIndex = currentState.timePickerIndex
+                val picker = currentState.pickedTime[pickerIndex].picker
+                val pickerTime = Formatter.timeFormat(picker.hour, picker.minute)
+
+                val pickedTime = currentState.pickedTime.mapIndexed { index, time ->
+                    if (index != pickerIndex) time
+                    else time.copy(
+                        time = pickerTime,
+                        picker = picker
+                    )
+                }
+
+                updateState {
+                    it.copy(
+                        showTimePicker = false,
+                        pickedTime = pickedTime
+                    )
+                }
+            }
+
+            is IntakeEvent.SetSameAmount -> {
+                val pickedTime = currentState.pickedTime.map {
+                    it.copy(amount = BLANK)
+                }
+
+                updateState {
+                    it.copy(
+                        sameAmount = event.flag,
+                        pickedTime = pickedTime
+                    )
+                }
+            }
+
+            is IntakeEvent.SetIntakeExtra -> {
+                when (event.extra) {
+                    IntakeExtra.CANCELLABLE -> updateState { it.copy(cancellable = !it.cancellable) }
+                    IntakeExtra.FULLSCREEN -> updateState { it.copy(fullScreen = !it.fullScreen) }
+                    IntakeExtra.NO_SOUND -> updateState { it.copy(noSound = !it.noSound) }
+                    IntakeExtra.PREALARM -> updateState { it.copy(preAlarm = !it.preAlarm) }
+                }
+
+                updateState {
+                    it.copy(selectedExtras = it.selectedExtras.toggle(event.extra))
+                }
+            }
+        }
+    }
+
+    fun setEditing() = updateState { it.copy(adding = false, editing = true, default = false) }
+
+    private fun validate() : Boolean {
+        val checkAmount = Validation.checkAmount(currentState.pickedTime)
+        val checkInterval = Validation.textNotEmpty(currentState.interval)
+        val checkPeriod = Validation.textNotEmpty(currentState.period)
+        val checkDateS = Validation.textNotEmpty(currentState.startDate)
+        val checkDateF = Validation.textNotEmpty(currentState.finalDate)
+        val checkTime = Validation.checkTime(currentState.pickedTime)
+
+        val hasError = listOf(
+            checkAmount, checkInterval, checkPeriod, checkDateS, checkDateF, checkTime
+        ).any { !it.successful }
+
+        return if (!hasError) true
+        else {
+            updateState {
+                it.copy(
+                    amountError = checkAmount.errorMessage,
+                    intervalError = checkInterval.errorMessage,
+                    periodError = checkPeriod.errorMessage,
+                    startDateError = checkDateS.errorMessage,
+                    finalDateError = checkDateF.errorMessage,
+                    timesError = checkTime.errorMessage
+                )
+            }
+
+            false
+        }
+    }
+}

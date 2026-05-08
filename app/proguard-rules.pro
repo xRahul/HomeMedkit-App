@@ -21,9 +21,9 @@
 -keep @androidx.room.Dao class *
 
 # Keep application DTOs and network models
--keep class ru.application.homemedkit.data.dto.** { *; }
--keep class ru.application.homemedkit.data.model.** { *; }
--keep class ru.application.homemedkit.network.models.** { *; }
+-keep class in.rahulja.medicinekit.data.dto.** { *; }
+-keep class in.rahulja.medicinekit.data.model.** { *; }
+-keep class in.rahulja.medicinekit.network.models.** { *; }
 
 # Ktor & GenerativeAI version mismatch fixes
 -dontwarn io.ktor.**

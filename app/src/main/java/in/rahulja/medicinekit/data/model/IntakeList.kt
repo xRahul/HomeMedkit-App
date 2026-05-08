@@ -1,0 +1,42 @@
+package `in`.rahulja.medicinekit.data.model
+
+import androidx.room.Relation
+import `in`.rahulja.medicinekit.data.dto.Image
+import `in`.rahulja.medicinekit.data.dto.IntakeDay
+import `in`.rahulja.medicinekit.data.dto.IntakeTime
+import `in`.rahulja.medicinekit.utils.enums.SchemaType
+import java.time.DayOfWeek
+
+data class IntakeList(
+    val intakeId: Long,
+    val medicineId: Long, // needed for relation
+    val productName: String,
+    val nameAlias: String,
+    val interval: Int,
+    val schemaType: SchemaType,
+    val finalDate: String,
+
+    @Relation(
+        entity = Image::class,
+        parentColumn = "medicineId",
+        entityColumn = "medicineId",
+        projection = ["image"]
+    )
+    val image: List<String>,
+
+    @Relation(
+        entity = IntakeDay::class,
+        parentColumn = "intakeId",
+        entityColumn = "intakeId",
+        projection = ["day"]
+    )
+    val days: List<DayOfWeek>,
+
+    @Relation(
+        entity = IntakeTime::class,
+        parentColumn = "intakeId",
+        entityColumn = "intakeId",
+        projection = ["time"]
+    )
+    val time: List<String>
+)

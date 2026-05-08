@@ -1,0 +1,39 @@
+package `in`.rahulja.medicinekit.models.states
+
+import androidx.annotation.StringRes
+import `in`.rahulja.medicinekit.data.dto.Kit
+import `in`.rahulja.medicinekit.utils.BLANK
+import `in`.rahulja.medicinekit.utils.enums.DoseType
+import `in`.rahulja.medicinekit.utils.enums.ImageEditing
+
+data class MedicineState(
+    val adding: Boolean = false,
+    val editing: Boolean = false,
+    val default: Boolean = false,
+    val isLoading: Boolean = true,
+    val id: Long = 0L,
+    val kits: Set<Kit> = emptySet(),
+    val code: String = BLANK,
+    val productName: String = BLANK,
+    val salts: String = BLANK,
+    @StringRes val productNameError: Int? = null,
+    val nameAlias: String = BLANK,
+    val expDate: Long = -1L,
+    val expDateString: String = BLANK,
+    val dateOpened: Long = -1L,
+    val dateOpenedString: String = BLANK,
+    val prodFormNormName: String = BLANK,
+    val structure: String = BLANK,
+    val prodDNormName: String = BLANK,
+    val prodAmount: String = BLANK,
+    val doseType: DoseType = DoseType.UNKNOWN,
+    val phKinetics: String = BLANK,
+    val recommendations: String = BLANK,
+    val storageConditions: String = BLANK,
+    val comment: String = BLANK,
+    val images: List<String> = emptyList(),
+    val technical: TechnicalState = TechnicalState(),
+    val imageEditing: ImageEditing = ImageEditing.ADDING,
+    val isOpened: Boolean = false,
+    val dialogState: MedicineDialogState? = null
+)

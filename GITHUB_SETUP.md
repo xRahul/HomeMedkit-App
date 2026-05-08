@@ -65,8 +65,8 @@ Copy the resulting long string and paste it into the `ANDROID_SIGNING_KEY` secre
 3. **Add to Obtainium:**
    - Open Obtainium on your Android device.
    - Click **Add App**.
-   - Paste your GitHub repository URL (e.g., `https://github.com/yourusername/HomeMedkit-App`).
-   - Obtainium will automatically detect the latest release, download the `HomeMedkit.apk`, and prompt you to install it.
+   - Paste your GitHub repository URL (e.g., `https://github.com/yourusername/MedicineKit-App`).
+   - Obtainium will automatically detect the latest release, download the `MedicineKit.apk`, and prompt you to install it.
    - In the future, every time you run the **Release** workflow, Obtainium will notify you of an update.
 
 ---
