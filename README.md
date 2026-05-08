@@ -1,43 +1,14 @@
 <div align="center">
 
-<img src="app/src/main/ic_launcher-playstore.png" alt="icon" width=256px height=256px/>
+# Medicine Kit
 
-# Домашняя аптечка
-
-Домашняя аптечка — это приложение, предназначенное для удобного хранения и управления вашими лекарствами.
-
-</div>
-
-<div align="center">
-
-[<img src="RuStore.svg" align="top" alt="Скачайте в RuStore" height=80px/>](https://www.rustore.ru/catalog/app/in.rahulja.medicinekit) 
-[<img src="IzzyOnDroid.png" align="top" alt="Get it on IzzyOnDroid" height=80px/>](https://apt.izzysoft.de/fdroid/index/apk/in.rahulja.medicinekit)
-[<img src="F-Droid.svg" align="top" alt="Get it on F-Droid" height="80px">](https://f-droid.org/packages/in.rahulja.medicinekit)
+Medicine Kit is a modern application designed for easy storage and management of your medicines.
 
 </div>
 
 <div align="left">
 
-# Описание
-
-Приложение предоставляет возможность контролировать сроки годности лекарств, составлять график их приёма и получать напоминания. 
-Это незаменимый помощник, который поможет вам быть в курсе вашего здоровья.
-
-# Основные функции
-
-:white_check_mark: Автоматическое добавление лекарств с помощью сканирования кодов.\
-:white_check_mark: Облачная синхронизация списка лекарств.\
-:white_check_mark: Возможность ручного добавления лекарств.\
-:white_check_mark: Обновление информации о лекарстве, если сканирование проводилось без подключения к интернету.\
-:white_check_mark: Добавление изображений лекарств.\
-:white_check_mark: Сортировка лекарств по срокам годности.\
-:white_check_mark: Группировка лекарств по категориям.\
-:white_check_mark: Звуковое уведомление о необходимости принять лекарство.\
-:white_check_mark: Отображение ближайшего расписания приёма лекарств.\
-:white_check_mark: Напоминание об истечении срока годности лекарств.\
-:white_check_mark: Возможность экспорта и импорта базы данных на другие устройства.
-
-# Medkit (English)
+# Description
 
 The application provides the ability to monitor the expiration dates of medicines, schedule their intake and receive reminders.
 It is an indispensable assistant that will help you keep abreast of your health.
@@ -56,10 +27,13 @@ It is an indispensable assistant that will help you keep abreast of your health.
 :white_check_mark: Reminder of the expiration date of medicines.\
 :white_check_mark: The ability to export and import databases to other devices.
 
+# Credits & License
+
+This project is a fork of the original HomeMedkit application. We are grateful to the original contributors for their work.
+
+Medicine Kit is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. 
+See the [LICENSE](LICENSE) file for more details.
+
+---
+*Note: This application is maintained by Rahul Jain.*
 </div>
-
-# Translations
-
-<a href="https://hosted.weblate.org/engage/homemedkit/">
-<img src="https://hosted.weblate.org/widget/homemedkit/multi-auto.svg" alt="Состояние перевода" />
-</a>

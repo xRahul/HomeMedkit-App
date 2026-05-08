@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Medkit</string>
+    <string name="app_name">Medicine Kit</string>
 
     <!-- Menu -->
     <string name="bottom_bar_medicines">Medicine</string>
