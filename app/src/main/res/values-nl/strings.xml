@@ -43,11 +43,11 @@
     <string name="text_intake_amount_not_enough">Het is tijd om %1$s in te nemen, maar de hoeveelheid is minder dan voorgeschreven!</string>
     <string name="text_intake_prealarm_text">Medicijn: %1$s\nHoeveelheid: %2$s %3$s\nTijd: %4$s</string>
     <string name="text_intake_prealarm_title">Aankomende inname</string>
-    <string name="text_intake_time">Medicijn: %1$s\nHoeveelheid: %2$s %3$s</string>
+    <string name="text_intake_time">Medicijn: %1$s\nHoeveelheid: %2$s %3$s\nOvergebleven medicijn: %4$s %3$s</string>
     <string name="text_medicine_amount_not_enough">Niet genoeg hoeveelheid over</string>
 
     <!-- Placeholders -->
-    <string name="placeholder_time">Tijd</string>
+    <string name="placeholder_time">Tijd #%1$d</string>
 
     <!-- Medications -->
     <string name="text_exp_date">Vertaling:</string>

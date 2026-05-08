@@ -50,7 +50,7 @@
     <string name="text_intake_amount_not_enough">E \'tempo di assunzione %1$s, ma la sua quantità è meno che prescritto! Ricreare l\'assunzione!</string>
     <string name="text_intake_prealarm_text">Medicine: %1$s\nQuantità: %2$s %3$s\nTime: %4$s</string>
     <string name="text_intake_prealarm_title">Prossima assunzione</string>
-    <string name="text_intake_time">Medicina: %1$s\nQuantità: %2$s %3$s</string>
+    <string name="text_intake_time">Medicina: %1$s\nQuantità: %2$s %3$s\nMedicina rimanente: %4$s %3$s</string>
     <string name="text_medicine_amount_not_enough">Non abbastanza importo lasciato</string>
 
     <!-- Placeholders -->

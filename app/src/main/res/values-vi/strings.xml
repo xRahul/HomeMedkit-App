@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Medkit</string>
 
     <!-- Menu -->
     <string name="bottom_bar_medicines">Các loại thuốc</string>
@@ -37,7 +38,7 @@
     <string name="text_expire_soon">Ngày hết hạn của %1$s sắp hết</string>
     <string name="text_intake_amount_not_enough">Đã đến lúc uống thuốc %1$s nhưng số lượng ít hơn quy định! Tái tạo lượng tiêu thụ!</string>
     <string name="text_intake_prealarm_text">Medication: %1$s Amount: %2$s %3$s Time: %4$s</string>
-    <string name="text_intake_time">Đã đến lúc uống thuốc %1$s\nSố lượng: %2$s %3$s</string>
+    <string name="text_intake_time">Đã đến lúc uống thuốc %1$s\nSố lượng: %2$s %3$s\nThuốc còn lại: %4$s %3$s</string>
 
     <!-- Placeholders -->
     <string name="placeholder_dose">0,5 mg + 84 mcg</string>

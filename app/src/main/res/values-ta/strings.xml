@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Medkit</string>
 
     <!-- Menu -->
     <string name="bottom_bar_medicines">மருந்துகள்</string>
@@ -43,7 +44,7 @@
     <string name="text_intake_amount_not_enough">%1$s உட்கொள்ளும் நேரம் இது, ஆனால் அதன் அளவு பரிந்துரைக்கப்பட்டதை விட குறைவாக உள்ளது!</string>
     <string name="text_intake_prealarm_text">மருத்துவம்: %1$s\n தொகை: %2$s %3$s\n நேரம்: %4$s</string>
     <string name="text_intake_prealarm_title">வரவிருக்கும் உட்கொள்ளல்</string>
-    <string name="text_intake_time">மருத்துவம்: %1$s\n தொகை: %2$s %3$s</string>
+    <string name="text_intake_time">மருத்துவம்: %1$s\n தொகை: %2$s %3$s\nமீதமுள்ள மருந்து: %4$s %3$s</string>
     <string name="text_medicine_amount_not_enough">போதுமான அளவு எஞ்சியிருக்கவில்லை</string>
 
     <!-- Placeholders -->
