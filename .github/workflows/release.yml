@@ -25,6 +25,7 @@ jobs:
     outputs:
       version_code: ${{ steps.bump.outputs.version_code }}
       version_name: ${{ steps.bump.outputs.version_name }}
+      new_sha: ${{ steps.get_sha.outputs.sha }}
     steps:
       - name: 'Checkout repository'
         uses: actions/checkout@v6
@@ -90,6 +91,10 @@ jobs:
           git commit -m "chore: bump version to ${{ steps.bump.outputs.version_name }} (${{ steps.bump.outputs.version_code }})"
           git push origin HEAD:${{ github.ref }}
 
+      - name: 'Get new SHA'
+        id: get_sha
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
   validation:
     name: Validation
     needs: bump-version
@@ -98,7 +103,7 @@ jobs:
       - name: 'Checkout repository'
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ needs.bump-version.outputs.new_sha }}
 
       - name: 'Setup JDK 21'
         uses: actions/setup-java@v5
@@ -120,7 +125,7 @@ jobs:
       - name: 'Checkout repository'
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ needs.bump-version.outputs.new_sha }}
 
       - name: 'Setup JDK 21'
         uses: actions/setup-java@v5
@@ -197,7 +202,7 @@ jobs:
       - name: 'Checkout repository'
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ needs.bump-version.outputs.new_sha }}
           fetch-depth: 0
 
       - name: 'Download artifacts'
