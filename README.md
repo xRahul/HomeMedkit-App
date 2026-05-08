@@ -15,17 +15,15 @@ It is an indispensable assistant that will help you keep abreast of your health.
 
 # Main features
 
-:white_check_mark: Automatically add medications by scanning codes.\
-:white_check_mark: Cloud synchronization of the list of medicines.\
-:white_check_mark: The ability to manually add medications.\
-:white_check_mark: Updating the information about the medicine if the scan was performed without an internet connection.\
-:white_check_mark: Adding images of medicines.\
-:white_check_mark: Sorting medicines by expiration date.\
-:white_check_mark: Grouping medicines by category.\
-:white_check_mark: An audible notification about the need for medication.\
-:white_check_mark: Displays the nearest medication schedule.\
-:white_check_mark: Reminder of the expiration date of medicines.\
-:white_check_mark: The ability to export and import databases to other devices.
+:white_check_mark: **AI-Powered Recognition:** Automatically extract medicine details from photos using Google Gemini or ML Kit.\
+:white_check_mark: **Material 3 Expressive UI:** Modern, fluid interface built with the latest Material Design 3 standards.\
+:white_check_mark: **Cloud Sync:** Securely back up your data to Yandex Disk or Google Drive (OAuth2/PKCE).\
+:white_check_mark: **Automated Maintenance:** Self-sorting translation resources and one-click automated GitHub releases.\
+:white_check_mark: **Privacy First:** Intelligent graceful degradation; the app works perfectly offline and hides cloud features if secrets aren't provided.\
+:white_check_mark: **Smart Scanning:** Rapidly add medications by scanning barcodes or Data Matrix codes.\
+:white_check_mark: **Intake Scheduling:** Set up complex intake schedules with localized audio notifications.\
+:white_check_mark: **Inventory Management:** Track expiration dates, quantities, and group medicines by kit/category.\
+:white_check_mark: **Import/Export:** Local database and image backup for full control over your data.
 
 # Credits & License
 
