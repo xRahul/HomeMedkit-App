@@ -1,9 +1,11 @@
 package `in`.rahulja.medicinekit.utils.extensions
 
+import android.app.Activity
 import android.app.AlarmManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Context.*
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.res.XmlResourceParser
 import android.media.AudioAttributes
@@ -20,6 +22,12 @@ import androidx.core.app.NotificationManagerCompat
 import org.xmlpull.v1.XmlPullParser
 import `in`.rahulja.medicinekit.R
 import java.util.Locale
+
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
 
 fun Context.isIgnoringBatteryOptimizations() =
     (getSystemService(POWER_SERVICE) as PowerManager).isIgnoringBatteryOptimizations(packageName)

@@ -30,13 +30,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import `in`.rahulja.medicinekit.utils.extensions.findActivity
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
@@ -53,7 +57,10 @@ class CameraConfig(private val context: Context) {
     private val _surfaceRequests = MutableStateFlow<SurfaceRequest?>(null)
     val surfaceRequests = _surfaceRequests.asStateFlow()
 
+    private val _boundUseCase = MutableStateFlow<UseCase?>(null)
+
     suspend fun bindCamera(lifecycleOwner: LifecycleOwner, useCase: UseCases) {
+        this.useCase = useCase
         val cameraPreview = Preview.Builder()
             .setResolutionSelector(useCase.useCaseConfig.resolutionSelector)
             .build()
@@ -67,12 +74,15 @@ class CameraConfig(private val context: Context) {
                 }
             }
 
+        val config = useCase.useCaseConfig.config
+        _boundUseCase.update { config }
+
         val cameraProvider = ProcessCameraProvider.awaitInstance(context)
         camera = withContext(Dispatchers.Main) {
             cameraProvider.bindToLifecycle(
                 lifecycleOwner = lifecycleOwner,
                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-                useCases = arrayOf(cameraPreview, useCase.useCaseConfig.config)
+                useCases = arrayOf(cameraPreview, config)
             )
         }
 
@@ -86,12 +96,23 @@ class CameraConfig(private val context: Context) {
         } finally {
             withContext(Dispatchers.Main) {
                 cameraProvider.unbindAll()
+                _boundUseCase.update { null }
             }
         }
     }
 
-    internal fun setImageAnalyzer(onResult: (String) -> Unit) = with(ImageAnalysis.config) {
-        setAnalyzer(Dispatchers.Default.asExecutor(), CodeAnalyzer(onResult))
+    internal fun setImageAnalyzer(onResult: (String) -> Unit) {
+        context.findActivity()?.let { activity ->
+            if (activity is androidx.lifecycle.LifecycleOwner) {
+                activity.lifecycle.coroutineScope.launch {
+                    _boundUseCase.collectLatest { config ->
+                        if (config is androidx.camera.core.ImageAnalysis) {
+                            config.setAnalyzer(Dispatchers.Default.asExecutor(), CodeAnalyzer(onResult))
+                        }
+                    }
+                }
+            }
+        }
     }
 
     suspend fun takePicture(onStart: () -> Unit) = withContext(Dispatchers.IO) {
@@ -100,7 +121,10 @@ class CameraConfig(private val context: Context) {
         val options = androidx.camera.core.ImageCapture.OutputFileOptions.Builder(file).build()
 
         try {
-            ImageCapture.config.takePicture(options, onStart)
+            val config = _boundUseCase.value
+            if (config is androidx.camera.core.ImageCapture) {
+                config.takePicture(options, onStart)
+            }
 
             name
         } catch (_: ImageCaptureException) {
@@ -138,6 +162,8 @@ class CameraConfig(private val context: Context) {
         }
     }
 
+    private lateinit var useCase: UseCases
+
     enum class UseCases(val useCaseConfig: UseCaseConfig) {
         IMAGE_ANALYSIS(ImageAnalysis),
         IMAGE_CAPTURE(ImageCapture)
@@ -151,12 +177,12 @@ class CameraConfig(private val context: Context) {
     private object ImageAnalysis : UseCaseConfig {
         private val size = Size(720, 1280)
 
-        override val resolutionSelector = ResolutionSelector.Builder()
+        override val resolutionSelector: ResolutionSelector get() = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
             .setResolutionStrategy(ResolutionStrategy(size, FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
             .build()
 
-        override val config = androidx.camera.core.ImageAnalysis.Builder()
+        override val config: UseCase get() = androidx.camera.core.ImageAnalysis.Builder()
             .setBackgroundExecutor(Dispatchers.Default.asExecutor())
             .setResolutionSelector(resolutionSelector)
             .setOutputImageRotationEnabled(true)
@@ -166,13 +192,13 @@ class CameraConfig(private val context: Context) {
     private object ImageCapture : UseCaseConfig {
         private val size = Size(1080, 1920)
 
-        override val resolutionSelector = ResolutionSelector.Builder()
+        override val resolutionSelector: ResolutionSelector get() = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
             .setAllowedResolutionMode(PREFER_HIGHER_RESOLUTION_OVER_CAPTURE_RATE)
             .setResolutionStrategy(ResolutionStrategy(size, FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
             .build()
 
-        override val config = androidx.camera.core.ImageCapture.Builder()
+        override val config: UseCase get() = androidx.camera.core.ImageCapture.Builder()
             .setIoExecutor(Dispatchers.IO.asExecutor())
             .setResolutionSelector(resolutionSelector)
             .setJpegQuality(70)

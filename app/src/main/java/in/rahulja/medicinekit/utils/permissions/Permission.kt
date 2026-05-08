@@ -8,6 +8,7 @@ import android.Manifest.permission.USE_FULL_SCREEN_INTENT
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import `in`.rahulja.medicinekit.utils.extensions.findActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -86,7 +88,10 @@ class Permission(private val context: Context, private val permission: String) :
             else -> ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         }
 
-        showRationale = !granted && ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, permission)
+        val activity = context.findActivity()
+        showRationale = if (!granted && activity != null) {
+            ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+        } else false
 
         return granted
     }

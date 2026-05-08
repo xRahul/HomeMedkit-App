@@ -31,11 +31,11 @@ class ScannerViewModel(
     val event = _event.receiveAsFlow()
 
     fun fetch(dir: File, code: String) {
-        if (currentState != ScannerState.Default) return
+        if (currentState != ScannerState.Default && currentState != ScannerState.Idle) return
 
         viewModelScope.launch {
             mutex.withLock {
-                if (currentState != ScannerState.Default) return@launch
+                if (currentState != ScannerState.Default && currentState != ScannerState.Idle) return@launch
 
                 val normalizedCode = with(code) {
                     val startIndex = indexOf("01")
@@ -100,10 +100,9 @@ class ScannerViewModel(
                     _event.send(ScannerEvent.ShowSnackbar.UnknownError())
                 } finally {
                     if (currentState !is ScannerState.ShowDialog) {
-                        updateState { ScannerState.Idle }
+                        updateState { ScannerState.Default }
                     }
-                }
-            }
+                }            }
         }
     }
 
