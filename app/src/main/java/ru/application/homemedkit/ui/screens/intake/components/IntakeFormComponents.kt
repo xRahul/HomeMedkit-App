@@ -1,9 +1,10 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens.intake.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.maxLength
@@ -19,12 +19,10 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.then
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -183,14 +181,12 @@ fun Time(state: IntakeState, event: (IntakeEvent) -> Unit) =
                         FilledTonalIconButton(
                             enabled = state.pickedTime.size > 1,
                             onClick = { event(IntakeEvent.DecTime) },
-                            content = { VectorIcon(R.drawable.vector_remove) },
-                            shapes = IconButtonDefaults.shapes()
+                            content = { VectorIcon(R.drawable.vector_remove) }
                         )
 
                         FilledTonalIconButton(
                             onClick = { event(IntakeEvent.IncTime) },
-                            content = { VectorIcon(R.drawable.vector_add) },
-                            shapes = IconButtonDefaults.shapes()
+                            content = { VectorIcon(R.drawable.vector_add) }
                         )
                     }
                 }
@@ -202,32 +198,21 @@ fun Time(state: IntakeState, event: (IntakeEvent) -> Unit) =
         state.pickedTime.forEachIndexed { index, amountTime ->
             Row {
                 ListItem(
-                    onClick = { if (!state.default) event(IntakeEvent.ShowTimePicker(index)) },
-                    modifier = Modifier.weight(1f),
-                    interactionSource = if (state.default) EmptyInteractionSource else null,
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(enabled = !state.default) { event(IntakeEvent.ShowTimePicker(index)) },
                     leadingContent = { VectorIcon(R.drawable.vector_time) },
-                    content = {
+                    headlineContent = {
                         Text(
                             text = stringResource(R.string.placeholder_time, index + 1),
                             overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            autoSize = TextAutoSize.StepBased(
-                                minFontSize = 8.sp,
-                                maxFontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                stepSize = (0.25).sp
-                            )
+                            maxLines = 1
                         )
                     },
                     supportingContent = {
                         Text(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            autoSize = TextAutoSize.StepBased(
-                                minFontSize = 8.sp,
-                                maxFontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                                stepSize = (0.25).sp
-                            ),
                             text = amountTime.time.ifEmpty {
                                 stringResource(R.string.text_not_selected)
                             }
@@ -316,12 +301,12 @@ fun Extra(state: IntakeState, event: (IntakeEvent) -> Unit) {
         HorizontalDivider()
 
         extrasFiltered.forEach { extra ->
+            val checked = extraAssociated.getOrDefault(extra, false)
             ListItem(
-                checked = extraAssociated.getOrDefault(extra, false),
-                onCheckedChange = { if (!state.default) event(IntakeEvent.SetIntakeExtra(extra)) },
-                shapes = ListItemDefaults.shapes(RectangleShape, RectangleShape),
-                interactionSource = if (state.default) EmptyInteractionSource else null,
-                content = {
+                modifier = Modifier.clickable(enabled = !state.default) {
+                    event(IntakeEvent.SetIntakeExtra(extra))
+                },
+                headlineContent = {
                     Text(
                         text = stringResource(extra.title),
                         overflow = TextOverflow.Ellipsis,
@@ -331,7 +316,7 @@ fun Extra(state: IntakeState, event: (IntakeEvent) -> Unit) {
                 leadingContent = {
                     Checkbox(
                         onCheckedChange = null,
-                        checked = extraAssociated.getOrDefault(extra, false)
+                        checked = checked
                     )
                 },
                 trailingContent = {

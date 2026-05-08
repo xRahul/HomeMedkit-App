@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens.medicine.components
 
@@ -44,12 +44,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -204,9 +202,9 @@ fun DialogPictureChoose(
 
     @Composable
     fun LocalButton(@StringRes text: Int, @DrawableRes icon: Int, onClick: () -> Unit) = ListItem(
-        onClick = onClick,
+        modifier = Modifier.clickable(onClick = onClick),
         leadingContent = { VectorIcon(icon, Modifier.size(24.dp)) },
-        content = {
+        headlineContent = {
             Text(
                 text = stringResource(text),
                 style = MaterialTheme.typography.labelLarge
@@ -465,18 +463,19 @@ fun DialogPictureGrid(images: List<String>, imageEditing: ImageEditing, event: (
                     LazyColumn(
                         modifier = Modifier.dragContainer(dragState),
                         state = listState,
-                        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         itemsIndexed(
                             items = images,
                             key = { _, item -> item }
                         ) { index, item ->
                             DraggableItem(dragState, index) { isDragging ->
-                                val itemShape = ListItemDefaults.segmentedShapes(index, images.size)
                                 val scale by animateFloatAsState(if (isDragging) 1.05f else 1.0f)
                                 val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
                                 val translationX by animateFloatAsState(if (isDragging) 20f else 0f)
                                 val translationY by animateFloatAsState(if (isDragging) -10f else 0f)
+
+                                val shape = MaterialTheme.shapes.medium
 
                                 Box(
                                     modifier = Modifier
@@ -487,15 +486,12 @@ fun DialogPictureGrid(images: List<String>, imageEditing: ImageEditing, event: (
                                             scaleX = scale
                                             scaleY = scale
                                             shadowElevation = elevation.toPx()
-                                            shape = itemShape.shape
+                                            this.shape = shape
                                             clip = true
                                         }
                                 ) {
-                                    SegmentedListItem(
-                                        shapes = itemShape,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        onClick = {},
-                                        content = {
+                                    ListItem(
+                                        headlineContent = {
                                             MedicineImage(
                                                 image = item,
                                                 editable = false,
@@ -513,7 +509,8 @@ fun DialogPictureGrid(images: List<String>, imageEditing: ImageEditing, event: (
                                         trailingContent = { VectorIcon(R.drawable.vector_menu) },
                                         colors = ListItemDefaults.colors(
                                             containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                        )
+                                        ),
+                                        modifier = Modifier.clip(MaterialTheme.shapes.medium)
                                     )
                                 }
                             }

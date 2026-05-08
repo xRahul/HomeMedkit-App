@@ -1,14 +1,17 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,31 +33,29 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults.MinWidth
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -67,6 +68,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -178,7 +180,7 @@ fun IntakesScreen(onNavigate: (Long) -> Unit) {
                     IntakeTab.LIST -> if (intakes.isNotEmpty())
                         LazyColumn(Modifier.fillMaxSize(), listStates[0]) {
                             items(intakes, Intake::intakeId) {
-                                ItemIntake(it, Modifier.animateItem(), onNavigate)
+                                ItemIntake(it, Modifier, onNavigate)
                                 HorizontalDivider()
                             }
                         }
@@ -242,6 +244,7 @@ fun IntakesScreen(onNavigate: (Long) -> Unit) {
         )
 
         null -> Unit
+        else -> Unit
     }
 }
 
@@ -267,7 +270,7 @@ private fun <T : IntakeModel> IntakeList(
                 item = item,
                 index = index,
                 count = group.intakes.size,
-                modifier = Modifier.animateItem(),
+                modifier = Modifier,
                 showDialog = showDialog,
                 showDialogDelete = showDialogDelete,
                 showDialogScheduleToTaken = showDialogScheduleToTaken
@@ -279,19 +282,17 @@ private fun <T : IntakeModel> IntakeList(
 @Composable
 private fun ItemIntake(intake: Intake, modifier: Modifier, onNavigate: (Long) -> Unit) =
     ListItem(
-        modifier = modifier,
-        onClick = { onNavigate(intake.intakeId) },
+        modifier = modifier.clickable { onNavigate(intake.intakeId) },
         overlineContent = {
             Text(
                 text = intake.title,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
-                style = MaterialTheme.typography.bodyLarge,
-                color = ListItemDefaults.colors().contentColor
+                style = MaterialTheme.typography.bodyLarge
             )
         },
-        content = {
+        headlineContent = {
             Text(
                 text = intake.days.asString(),
                 softWrap = false,
@@ -318,7 +319,7 @@ private fun ItemIntake(intake: Intake, modifier: Modifier, onNavigate: (Long) ->
             )
         },
         colors = ListItemDefaults.colors(
-            containerColor = if (intake.active) ListItemDefaults.containerColor
+            containerColor = if (intake.active) Color.Unspecified
             else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
         )
     )
@@ -492,7 +493,6 @@ private fun DialogAddTaken(
                     ) {
                         medicines.fastForEach { item ->
                             DropdownMenuItem(
-                                shape = MenuDefaults.shape,
                                 onClick = {
                                     onEvent(NewTakenEvent.PickMedicine(item))
                                     expanded = false
@@ -702,16 +702,22 @@ private fun DialogTaken(intake: TakenState, onDismiss: () -> Unit, onEvent: (Tak
                         )
                     }
 
-                    else -> Row(horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                    else -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items.forEachIndexed { index, label ->
-                            ToggleButton(
-                                checked = index == intake.selection,
-                                onCheckedChange = { onEvent(TakenEvent.SetSelection(index)) },
-                                modifier = Modifier.weight(1f),
-                                content = { Text(stringResource(label)) },
-                                shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                else ButtonGroupDefaults.connectedTrailingButtonShapes()
-                            )
+                            val isSelected = index == intake.selection
+                            if (isSelected) {
+                                FilledTonalButton(
+                                    onClick = { onEvent(TakenEvent.SetSelection(index)) },
+                                    modifier = Modifier.weight(1f),
+                                    content = { Text(stringResource(label)) }
+                                )
+                            } else {
+                                OutlinedButton(
+                                    onClick = { onEvent(TakenEvent.SetSelection(index)) },
+                                    modifier = Modifier.weight(1f),
+                                    content = { Text(stringResource(label)) }
+                                )
+                            }
                         }
                     }
                 }
@@ -743,18 +749,9 @@ private fun ItemSchedule(
     showDialog: ((Long) -> Unit)? = null,
     showDialogDelete: ((Long) -> Unit)? = null,
     showDialogScheduleToTaken: ((IntakeModel) -> Unit)? = null
-) = SegmentedListItem(
-    modifier = modifier.padding(ListItemDefaults.SegmentedGap),
-    shapes = ListItemDefaults.segmentedShapes(index, count),
-    onClick = { showDialog?.invoke(item.id) },
-    onLongClick = {
-        showDialogScheduleToTaken?.invoke(item)
-
-        if (!item.taken) {
-            showDialogDelete?.invoke(item.id)
-        }
-    },
-    content = {
+) = ListItem(
+    modifier = modifier.padding(vertical = 4.dp).clickable { showDialog?.invoke(item.id) },
+    headlineContent = {
         Text(
             text = item.title,
             softWrap = false,

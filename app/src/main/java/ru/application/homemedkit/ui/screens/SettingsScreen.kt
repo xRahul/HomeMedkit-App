@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens
 
@@ -21,32 +21,33 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedListItem
-import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -119,26 +120,12 @@ import ru.application.homemedkit.utils.KEY_START_PAGE
 import ru.application.homemedkit.utils.KEY_USE_AI
 import ru.application.homemedkit.utils.KEY_USE_ALARM_CLOCK
 import ru.application.homemedkit.utils.KEY_USE_VIBRATION_SCAN
-import ru.application.homemedkit.utils.Preferences
 import ru.application.homemedkit.utils.AppLocale
 import ru.application.homemedkit.utils.DataManager
-import ru.application.homemedkit.utils.KEY_APP_SYSTEM
-import ru.application.homemedkit.utils.KEY_APP_VIEW
 import ru.application.homemedkit.utils.KEY_AUTOLAUNCH
-import ru.application.homemedkit.utils.KEY_AUTO_CHANGE_INTAKE_WHEN_TIME_CHANGE
-import ru.application.homemedkit.utils.KEY_AUTO_SYNC_ENABLED
-import ru.application.homemedkit.utils.KEY_BASIC_SETTINGS
-import ru.application.homemedkit.utils.KEY_CLEAR_CACHE
-import ru.application.homemedkit.utils.KEY_CONFIRM_EXIT
-import ru.application.homemedkit.utils.KEY_DOWNLOAD
-import ru.application.homemedkit.utils.KEY_DYNAMIC_COLOR
 import ru.application.homemedkit.utils.KEY_FIXING
-import ru.application.homemedkit.utils.KEY_GEMINI_API_KEY
-import ru.application.homemedkit.utils.KEY_IMPORT_EXPORT
 import ru.application.homemedkit.utils.KEY_KITS
 import ru.application.homemedkit.utils.KEY_PERMISSIONS
-import ru.application.homemedkit.utils.KEY_USE_ALARM_CLOCK
-import ru.application.homemedkit.utils.KEY_USE_VIBRATION_SCAN
 import ru.application.homemedkit.utils.di.AlarmManager
 import ru.application.homemedkit.utils.di.Preferences
 import ru.application.homemedkit.utils.enums.Page
@@ -155,8 +142,6 @@ import ru.application.homemedkit.utils.launcherExportDatabase
 import ru.application.homemedkit.utils.launcherExportImages
 import ru.application.homemedkit.utils.launcherImportDatabase
 import ru.application.homemedkit.utils.launcherImportImages
-import ru.application.homemedkit.utils.permissions.PermissionState
-import ru.application.homemedkit.utils.permissions.rememberPermissionState
 import java.util.Locale
 
 @Composable
@@ -174,6 +159,9 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
     val sorting by model.sortingType.collectAsStateWithLifecycle()
     val checkExpiration by model.checkExpiration.collectAsStateWithLifecycle()
     val theme by model.theme.collectAsStateWithLifecycle()
+
+    val useAi by model.useAi.collectAsStateWithLifecycle()
+    val aiMode by model.aiMode.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.showKits, state.showPermissions) {
         if (state.showKits || state.showPermissions) barVisibility.hide()
@@ -282,23 +270,19 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
                 summary = { Text(stringResource(if (it) R.string.text_on else R.string.text_off)) }
             )
 
-            val useAi = model.useAi.value
             if (useAi) {
                 preference(
                     key = KEY_AI_MODE,
                     title = { Text(stringResource(R.string.preference_ai_mode)) },
                     summary = {
-                        val mode = model.aiMode.value
-                        Text(stringResource(mode.title))
+                        Text(stringResource(aiMode.title))
                     },
                     onClick = {
-                        val currentMode = model.aiMode.value
-                        val newMode = if (currentMode == ru.application.homemedkit.utils.enums.AiMode.ML_KIT) ru.application.homemedkit.utils.enums.AiMode.GEMINI else ru.application.homemedkit.utils.enums.AiMode.ML_KIT
+                        val newMode = if (aiMode == ru.application.homemedkit.utils.enums.AiMode.ML_KIT) ru.application.homemedkit.utils.enums.AiMode.GEMINI else ru.application.homemedkit.utils.enums.AiMode.ML_KIT
                         Preferences.setAiMode(newMode)
                     }
                 )
 
-                val aiMode = model.aiMode.value
                 if (aiMode == ru.application.homemedkit.utils.enums.AiMode.GEMINI) {
                     textFieldPreference(
                         key = KEY_GEMINI_API_KEY,
@@ -455,7 +439,6 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KitsManager(
     isVisible: Boolean,
@@ -512,7 +495,7 @@ private fun KitsManager(
             },
             floatingActionButton = {
                 if (!ordering) {
-                    SmallExtendedFloatingActionButton(
+                    ExtendedFloatingActionButton(
                         text = { Text(stringResource(R.string.text_add)) },
                         icon = { VectorIcon(R.drawable.vector_add) },
                         onClick = { show = true },
@@ -522,7 +505,7 @@ private fun KitsManager(
         ) { values ->
             LazyColumn(
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(values)
@@ -533,7 +516,6 @@ private fun KitsManager(
                     key = { _, item -> item.kitId }
                 ) { index, item ->
                     DraggableItem(dragState, index) { isDragging ->
-                        val itemShape = ListItemDefaults.segmentedShapes(index, list.size)
                         val scale by animateFloatAsState(if (isDragging) 1.05f else 1.0f)
                         val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
                         val translationX by animateFloatAsState(if (isDragging) 20f else 0f)
@@ -548,26 +530,21 @@ private fun KitsManager(
                                     scaleX = scale
                                     scaleY = scale
                                     shadowElevation = elevation.toPx()
-                                    shape = itemShape.shape
+                                    shape = RoundedCornerShape(12.dp)
                                     clip = true
                                 }
                         ) {
-                            SegmentedListItem(
-                                shapes = itemShape,
-                                verticalAlignment = Alignment.CenterVertically,
-                                onClick = {},
-                                content = { Text(item.title) },
-                                leadingContent = ordering.let {
-                                    {
-                                        if (!it) {
-                                            IconButton(
-                                                content = { VectorIcon(R.drawable.vector_edit) },
-                                                onClick = {
-                                                    kit = Kit(item.kitId, item.title, item.position)
-                                                    show = true
-                                                }
-                                            )
-                                        }
+                            ListItem(
+                                headlineContent = { Text(item.title) },
+                                leadingContent = {
+                                    if (!ordering) {
+                                        IconButton(
+                                            content = { VectorIcon(R.drawable.vector_edit) },
+                                            onClick = {
+                                                kit = Kit(item.kitId, item.title, item.position)
+                                                show = true
+                                            }
+                                        )
                                     }
                                 },
                                 trailingContent = {
@@ -626,8 +603,8 @@ private fun KitsManager(
 private fun DialogData(onAction: ActionHandler, onDismiss: () -> Unit) {
     @Composable
     fun LocalButton(@StringRes text: Int, onClick: () -> Unit) = ListItem(
-        onClick = onClick,
-        content = { Text(stringResource(text)) },
+        headlineContent = { Text(stringResource(text)) },
+        modifier = Modifier.clickable(onClick = onClick),
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
             headlineColor = MaterialTheme.colorScheme.primary,

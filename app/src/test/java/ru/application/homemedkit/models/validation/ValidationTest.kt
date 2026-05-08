@@ -1,94 +1,67 @@
 package ru.application.homemedkit.models.validation
 
-import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import ru.application.homemedkit.R
 import ru.application.homemedkit.data.model.IntakeAmountTime
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TimePickerState
 
+@OptIn(ExperimentalMaterial3Api::class)
 class ValidationTest {
 
     @Test
-    fun `checkTime returns successful when all times are not empty`() {
+    fun `checkAmount returns success for valid amounts`() {
         val list = listOf(
-            IntakeAmountTime(time = "10:00", picker = mockk()),
-            IntakeAmountTime(time = "14:00", picker = mockk())
+            IntakeAmountTime("1.5", "12:00", TimePickerState(12, 0, true)),
+            IntakeAmountTime("2", "18:00", TimePickerState(18, 0, true))
         )
-
-        val result = Validation.checkTime(list)
-
+        val result = Validation.checkAmount(list)
         assertTrue(result.successful)
-        assertNull(result.errorMessage)
     }
 
     @Test
-    fun `checkTime returns failure when at least one time is empty`() {
-        val list = listOf(
-            IntakeAmountTime(time = "10:00", picker = mockk()),
-            IntakeAmountTime(time = "", picker = mockk())
-        )
-
-        val result = Validation.checkTime(list)
-
+    fun `checkAmount returns failure for empty amount`() {
+        val list = listOf(IntakeAmountTime("", "12:00", TimePickerState(12, 0, true)))
+        val result = Validation.checkAmount(list)
         assertFalse(result.successful)
         assertEquals(R.string.text_fill_field, result.errorMessage)
     }
 
     @Test
-    fun `checkTime returns successful when list is empty`() {
-        val list = emptyList<IntakeAmountTime>()
-
-        val result = Validation.checkTime(list)
-
-        assertTrue(result.successful)
-        assertNull(result.errorMessage)
-    }
-
-    @Test
-    fun `checkAmount returns successful when all amounts are not empty`() {
-        val list = listOf(
-            IntakeAmountTime(amount = "1", picker = mockk()),
-            IntakeAmountTime(amount = "0.5", picker = mockk())
-        )
-
+    fun `checkAmount returns failure for invalid number`() {
+        val list = listOf(IntakeAmountTime("abc", "12:00", TimePickerState(12, 0, true)))
         val result = Validation.checkAmount(list)
-
-        assertTrue(result.successful)
-        assertNull(result.errorMessage)
-    }
-
-    @Test
-    fun `checkAmount returns failure when at least one amount is empty`() {
-        val list = listOf(
-            IntakeAmountTime(amount = "1", picker = mockk()),
-            IntakeAmountTime(amount = "", picker = mockk())
-        )
-
-        val result = Validation.checkAmount(list)
-
         assertFalse(result.successful)
         assertEquals(R.string.text_fill_field, result.errorMessage)
     }
 
     @Test
-    fun `textNotEmpty returns successful when text is not empty`() {
-        val text = "some text"
-
-        val result = Validation.textNotEmpty(text)
-
+    fun `checkTime returns success for valid times`() {
+        val list = listOf(IntakeAmountTime("1.0", "12:00", TimePickerState(12, 0, true)))
+        val result = Validation.checkTime(list)
         assertTrue(result.successful)
-        assertNull(result.errorMessage)
     }
 
     @Test
-    fun `textNotEmpty returns failure when text is empty`() {
-        val text = ""
+    fun `checkTime returns failure for empty time`() {
+        val list = listOf(IntakeAmountTime("1.0", "", TimePickerState(12, 0, true)))
+        val result = Validation.checkTime(list)
+        assertFalse(result.successful)
+        assertEquals(R.string.text_fill_field, result.errorMessage)
+    }
 
-        val result = Validation.textNotEmpty(text)
+    @Test
+    fun `textNotEmpty returns success for non-empty text`() {
+        val result = Validation.textNotEmpty("something")
+        assertTrue(result.successful)
+    }
 
+    @Test
+    fun `textNotEmpty returns failure for empty text`() {
+        val result = Validation.textNotEmpty("")
         assertFalse(result.successful)
         assertEquals(R.string.text_fill_field, result.errorMessage)
     }

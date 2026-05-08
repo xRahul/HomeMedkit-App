@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens
 
@@ -6,7 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,29 +27,22 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenuGroup
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButtonMenu
-import androidx.compose.material3.FloatingActionButtonMenuItem
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ToggleFloatingActionButton
-import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -56,7 +51,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import ru.application.homemedkit.R
@@ -123,47 +117,36 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
         onSearch = model::onSearch,
         actions = {
             IconButton(model::showSorting) { VectorIcon(R.drawable.vector_sort) }
-            DropdownMenuPopup(state.showSorting, model::showSorting) {
-                DropdownMenuGroup(MenuDefaults.groupShape(0, 2)) {
-                    MenuDefaults.Label {
-                        Text(
-                            text = stringResource(R.string.preference_sorting_type),
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
+            DropdownMenu(
+                expanded = state.showSorting,
+                onDismissRequest = model::showSorting
+            ) {
+                Text(
+                    text = stringResource(R.string.preference_sorting_type),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
 
-                    HorizontalDivider(Modifier.padding(MenuDefaults.HorizontalDividerPadding))
-
-                    Sorting.entries.fastForEachIndexed { index, entry ->
-                        DropdownMenuItem(
-                            selected = entry == state.sorting,
-                            onClick = { model.setSorting(entry) },
-                            text = { Text(stringResource(entry.title)) },
-                            shapes = MenuDefaults.itemShape(index, Sorting.entries.size)
-                        )
-                    }
+                Sorting.entries.fastForEach { entry ->
+                    DropdownMenuItem(
+                        onClick = { model.setSorting(entry) },
+                        text = { Text(stringResource(entry.title)) }
+                    )
                 }
 
-                Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+                HorizontalDivider()
 
-                DropdownMenuGroup(MenuDefaults.groupShape(1, 2)) {
-                    MenuDefaults.Label {
-                        Text(
-                            text = stringResource(R.string.text_list_view),
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
+                Text(
+                    text = stringResource(R.string.text_list_view),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
 
-                    HorizontalDivider(Modifier.padding(MenuDefaults.HorizontalDividerPadding))
-
-                    MedicineListView.entries.fastForEachIndexed { index, entry ->
-                        DropdownMenuItem(
-                            selected = state.listView == entry,
-                            onClick = { model.pickView(entry)  },
-                            text = { Text(stringResource(entry.title)) },
-                            shapes = MenuDefaults.itemShape(index, MedicineListView.entries.size)
-                        )
-                    }
+                MedicineListView.entries.fastForEach { entry ->
+                    DropdownMenuItem(
+                        onClick = { model.pickView(entry) },
+                        text = { Text(stringResource(entry.title)) }
+                    )
                 }
             }
 
@@ -175,40 +158,37 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
             }
         },
         floatingActionButton = {
-            FloatingActionButtonMenu(
-                modifier = Modifier.align(Alignment.BottomEnd),
-                expanded = state.showAdding,
-                button = {
-                    ToggleFloatingActionButton(
-                        checked = state.showAdding,
-                        onCheckedChange = { model.toggleAdding() },
-                        modifier = Modifier
-                            .animateFloatingActionButton(
-                                visible = listStates.all { !it.isScrollInProgress } || state.showAdding,
-                                alignment = Alignment.BottomEnd
-                            )
+            var expanded by remember { mutableStateOf(false) }
+            Column(horizontalAlignment = Alignment.End) {
+                if (expanded) {
+                    FloatingActionButton(
+                        onClick = { 
+                            onNavigate(Screen.Scanner)
+                            expanded = false
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp)
                     ) {
-                        val rotation by animateFloatAsState(if (state.showAdding) 45f else 0f)
-
-                        VectorIcon(
-                            icon = R.drawable.vector_add,
-                            modifier = Modifier.rotate(rotation),
-                            tint = if (state.showAdding) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        VectorIcon(R.drawable.vector_scanner)
+                    }
+                    FloatingActionButton(
+                        onClick = { 
+                            onNavigate(Screen.Medicine())
+                            expanded = false
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        VectorIcon(R.drawable.vector_edit)
                     }
                 }
-            ) {
-                FloatingActionButtonMenuItem(
-                    onClick = { onNavigate(Screen.Scanner) },
-                    icon = { VectorIcon(R.drawable.vector_scanner) },
-                    text = { Text(stringResource(R.string.text_scan)) }
-                )
-                FloatingActionButtonMenuItem(
-                    onClick = { onNavigate(Screen.Medicine()) },
-                    icon = { VectorIcon(R.drawable.vector_edit) },
-                    text = { Text(stringResource(R.string.text_add)) }
-                )
+                FloatingActionButton(
+                    onClick = { expanded = !expanded }
+                ) {
+                    val rotation by animateFloatAsState(if (expanded) 45f else 0f)
+                    VectorIcon(
+                        icon = R.drawable.vector_add,
+                        modifier = Modifier.rotate(rotation)
+                    )
+                }
             }
         }
     ) {
@@ -237,16 +217,14 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                                 TextDate(group.kit.title.asString())
                             }
 
-                            val groupSize = group.medicines.size
                             itemsIndexed(
                                 items = group.medicines,
                                 key = { _, item -> Pair(group.kit.id, item.id) }
-                            ) { index, medicine ->
+                            ) { _, medicine ->
                                 SegmentedMedicineItem(
                                     medicine = medicine,
                                     onClick = onItemClick,
-                                    modifier = Modifier.animateItem(),
-                                    shapes = ListItemDefaults.segmentedShapes(index, groupSize)
+                                    modifier = Modifier.animateItem()
                                 )
                             }
                         }
@@ -276,11 +254,10 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
 @Composable
 private fun MedicineItem(medicine: MedicineList, modifier: Modifier, onClick: (Long) -> Unit) =
     ListItem(
-        modifier = modifier,
-        onClick = { onClick(medicine.id) },
+        modifier = modifier.clickable { onClick(medicine.id) },
         leadingContent = { MedicineImage(medicine.image, Modifier.size(56.dp)) },
         overlineContent = { Text(medicine.formName) },
-        content = {
+        headlineContent = {
             Text(
                 text = medicine.title,
                 overflow = TextOverflow.Ellipsis,
@@ -293,7 +270,7 @@ private fun MedicineItem(medicine: MedicineList, modifier: Modifier, onClick: (L
                 Text(medicine.prodAmountDoseType.asString())
             }
         },
-        colors = ListItemDefaults.segmentedColors(
+        colors = ListItemDefaults.colors(
             containerColor = containerColor(
                 inStock = medicine.inStock,
                 isExpired = medicine.isExpired
@@ -305,14 +282,11 @@ private fun MedicineItem(medicine: MedicineList, modifier: Modifier, onClick: (L
 private fun SegmentedMedicineItem(
     medicine: MedicineList,
     modifier: Modifier,
-    shapes: ListItemShapes,
     onClick: (Long) -> Unit
-) = SegmentedListItem(
-    shapes = shapes,
-    modifier = modifier.padding(ListItemDefaults.SegmentedGap),
-    onClick = { onClick(medicine.id) },
+) = ListItem(
+    modifier = modifier.padding(vertical = 4.dp).clickable { onClick(medicine.id) },
     leadingContent = { MedicineImage(medicine.image, Modifier.size(56.dp)) },
-    content = {
+    headlineContent = {
         Text(
             text = medicine.title,
             overflow = TextOverflow.Ellipsis,
@@ -331,7 +305,7 @@ private fun SegmentedMedicineItem(
             Text(medicine.prodAmountDoseType.asString())
         }
     },
-    colors = ListItemDefaults.segmentedColors(
+    colors = ListItemDefaults.colors(
         containerColor = containerColor(
             inStock = medicine.inStock,
             isExpired = medicine.isExpired

@@ -39,6 +39,6 @@ class ActionGroupReceiver : BroadcastReceiver(), KoinComponent {
                 }
             }
 
-        context.sendBroadcast(Intent(ACTION_CLOSE_ALL_FULL_SCREEN_INTENTS))
+        context.sendBroadcast(Intent(ACTION_CLOSE_ALL_FULL_SCREEN_INTENTS).setPackage(context.packageName))
     }
 }

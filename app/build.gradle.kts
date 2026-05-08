@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "ru.application.homemedkit"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "ru.application.homemedkit"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 71
         versionName = "1.9.6"
     }
@@ -56,6 +56,12 @@ android {
         checkReleaseBuilds = true
     }
 
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -64,6 +70,12 @@ android {
     testOptions {
         unitTests.all {
             it.useJUnitPlatform()
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,INDEX.LIST,DEPENDENCIES,LICENSE,LICENSE.txt,NOTICE,NOTICE.txt}"
         }
     }
 }

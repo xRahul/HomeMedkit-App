@@ -2,8 +2,10 @@ package ru.application.homemedkit.di
 
 import androidx.work.WorkManager
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.androidx.workmanager.dsl.worker
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import ru.application.homemedkit.data.MedicineDatabase
 import ru.application.homemedkit.models.viewModels.*
@@ -26,7 +28,7 @@ val appModule = module {
     single { get<MedicineDatabase>().takenDAO() }
 
     // ViewModels
-    viewModel { MainViewModel(get(), get()) }
+    viewModelOf(::MainViewModel)
     viewModel { (code: String?) -> AuthViewModel(code, get(), get()) }
     viewModel { (id: Long, cis: String, duplicate: Boolean) ->
         MedicineViewModel(id, cis, duplicate, get(), get())
@@ -34,10 +36,10 @@ val appModule = module {
     viewModel { (intakeId: Long, medicineId: Long) ->
         IntakeViewModel(intakeId, medicineId, get(), get(), get(), get(), get(), get())
     }
-    viewModel { IntakesViewModel(get(), get(), get(), get(), get()) }
-    viewModel { MedicinesViewModel(get(), get(), get()) }
-    viewModel { ScannerViewModel(get()) }
-    viewModel { SettingsViewModel(get(), get()) }
+    viewModelOf(::IntakesViewModel)
+    viewModelOf(::MedicinesViewModel)
+    viewModelOf(::ScannerViewModel)
+    viewModelOf(::SettingsViewModel)
 
     worker { SyncWorker(get(), get(), get()) }
 }

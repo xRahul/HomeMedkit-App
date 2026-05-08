@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens.medicine.components
 
@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,14 +45,12 @@ fun DoseDropdownMenu(doseTitle: String, setDoseType: (DoseType) -> Unit) {
             ExposedDropdownMenuDefaults.TrailingIcon(isExpanded)
         }
         ExposedDropdownMenu(
-            shape = MenuDefaults.standaloneGroupShape,
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false }
         ) {
             DoseType.entries.forEach { item ->
                 DropdownMenuItem(
                     modifier = Modifier.wrapContentSize(),
-                    shape = MenuDefaults.shape,
                     text = {
                         Text(
                             text = stringResource(item.title),

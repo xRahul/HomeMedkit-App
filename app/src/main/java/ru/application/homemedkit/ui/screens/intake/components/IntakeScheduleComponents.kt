@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens.intake.components
 
@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.maxLength
@@ -21,7 +20,6 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.then
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -86,8 +84,7 @@ fun SchemaType(state: IntakeState, event: (IntakeEvent) -> Unit) = OutlinedCard 
             SchemaType.entries.forEach {
                 DropdownMenuItem(
                     onClick = { event(IntakeEvent.SetSchemaType(it)) },
-                    text = { Text(stringResource(it.title)) },
-                    shape = MenuDefaults.standaloneItemShape
+                    text = { Text(stringResource(it.title)) }
                 )
             }
         }
@@ -156,8 +153,7 @@ fun Interval(state: IntakeState, event: (IntakeEvent) -> Unit) =
                 Interval.entries.forEach {
                     DropdownMenuItem(
                         onClick = { event(IntakeEvent.SetInterval(it)) },
-                        text = { Text(stringResource(it.title)) },
-                        shape = MenuDefaults.standaloneItemShape
+                        text = { Text(stringResource(it.title)) }
                     )
                 }
             }
@@ -223,10 +219,8 @@ fun Period(state: IntakeState, event: (IntakeEvent) -> Unit) =
                     Period.entries.forEach {
                         DropdownMenuItem(
                             onClick = { event(IntakeEvent.SetPeriod(it)) },
-                            text = { Text(stringResource(it.title)) },
-                            shape = MenuDefaults.standaloneItemShape
-                        )
-                    }
+                            text = { Text(stringResource(it.title)) }
+                        )                    }
                 }
             }
 
@@ -253,12 +247,7 @@ fun Period(state: IntakeState, event: (IntakeEvent) -> Unit) =
                     placeholder = {
                         Text(
                             text = stringResource(R.string.text_empty),
-                            maxLines = 1,
-                            autoSize = TextAutoSize.StepBased(
-                                minFontSize = 8.sp,
-                                maxFontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                stepSize = (0.25).sp
-                            )
+                            maxLines = 1
                         )
                     },
                     prefix = {

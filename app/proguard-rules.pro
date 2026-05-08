@@ -24,3 +24,13 @@
 -keep class ru.application.homemedkit.data.dto.** { *; }
 -keep class ru.application.homemedkit.data.model.** { *; }
 -keep class ru.application.homemedkit.network.models.** { *; }
+
+# Ktor & GenerativeAI version mismatch fixes
+-dontwarn io.ktor.**
+-dontwarn com.google.ai.client.generativeai.**
+-dontwarn okio.**
+-dontwarn javax.annotation.**
+-dontwarn org.slf4j.**
+-dontwarn org.apache.http.**
+-dontwarn com.google.api.**
+-dontwarn com.google.auth.**

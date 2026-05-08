@@ -5,11 +5,13 @@ import android.Manifest.permission.POST_NOTIFICATIONS
 import android.Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import android.Manifest.permission.SCHEDULE_EXACT_ALARM
 import android.Manifest.permission.USE_FULL_SCREEN_INTENT
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
 import android.provider.Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT
@@ -50,9 +52,17 @@ class Permission(private val context: Context, private val permission: String) :
 
     override fun openSettings() {
         val action = when (permission) {
-            SCHEDULE_EXACT_ALARM -> ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+            SCHEDULE_EXACT_ALARM -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                else ACTION_APPLICATION_DETAILS_SETTINGS
+            }
+
             POST_NOTIFICATIONS -> ACTION_APP_NOTIFICATION_SETTINGS
-            USE_FULL_SCREEN_INTENT -> ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT
+            USE_FULL_SCREEN_INTENT -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT
+                else ACTION_APPLICATION_DETAILS_SETTINGS
+            }
+
             REQUEST_IGNORE_BATTERY_OPTIMIZATIONS -> ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
             else -> ACTION_APPLICATION_DETAILS_SETTINGS
         }

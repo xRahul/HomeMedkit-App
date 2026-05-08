@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens
 
@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -28,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,6 +46,7 @@ import ru.application.homemedkit.utils.extensions.medicine
 
 @Composable
 fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (Long) -> Unit) {
+    val resources = LocalResources.current
     val context = LocalContext.current
     val filesDir = context.filesDir
 
@@ -78,7 +79,7 @@ fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (
                 is MedicineAction.ShowSnackbar -> {
                     snackbarHost.showSnackbar(
                         visuals = CustomSnackbar(
-                            message = context.getString(result.message),
+                            message = resources.getString(result.message),
                             isError = result != MedicineAction.ShowSnackbar.OnMakeDuplicate
                         )
                     )
@@ -101,7 +102,6 @@ fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (
         topBar = {
             TopAppBar(
                 title = {},
-                subtitle = {},
                 navigationIcon = {
                     NavigationIcon {
                         if (state.default) onBack()

@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package ru.application.homemedkit.ui.screens
 
@@ -23,10 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -74,7 +73,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
         OutlinedButton(
             onClick = onClick,
             enabled = enabled,
-            shapes = ButtonDefaults.shapes(),
+            shape = ButtonDefaults.outlinedShape,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
@@ -117,7 +116,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
             if (enabled) {
                 VectorIcon(icon, Modifier.size(24.dp))
             } else {
-                LoadingIndicator(Modifier.size(24.dp))
+                CircularProgressIndicator(Modifier.size(24.dp))
             }
 
             Spacer(Modifier.size(8.dp))
@@ -141,7 +140,6 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbarState) },
         topBar = {
             TopAppBar(
-                subtitle = {},
                 title = { Text(stringResource(R.string.text_sync)) },
                 navigationIcon = { NavigationIcon(onBack) },
                 actions = {
@@ -158,7 +156,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
         when (authStatus) {
             AuthStatus.Loading -> {
                 Box(
-                    content = { LoadingIndicator() },
+                    content = { CircularProgressIndicator() },
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxSize()

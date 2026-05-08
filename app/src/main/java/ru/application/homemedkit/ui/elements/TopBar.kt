@@ -1,17 +1,11 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package ru.application.homemedkit.ui.elements
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.DropdownMenuGroup
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ru.application.homemedkit.R
@@ -39,11 +32,9 @@ fun TopBarActions(
     fun LocalDropDownItem(
         @StringRes text: Int,
         @DrawableRes icon: Int,
-        shape: Shape,
         onClick: () -> Unit
     ) = DropdownMenuItem(
         onClick = onClick,
-        shape = shape,
         trailingIcon = { VectorIcon(icon) },
         text = {
             Text(
@@ -59,7 +50,6 @@ fun TopBarActions(
         if (onNavigate != null) {
             FilledIconButton(
                 onClick = onNavigate,
-                shapes = IconButtonDefaults.shapes(),
                 content = { VectorIcon(R.drawable.vector_notification) }
             )
         }
@@ -69,54 +59,48 @@ fun TopBarActions(
             content = { VectorIcon(R.drawable.vector_dropdown_more) }
         )
 
-        DropdownMenuPopup(
+        DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DropdownMenuGroup(MenuDefaults.groupShape(0, 1)) {
-                if (onDuplicate != null) {
-                    LocalDropDownItem(
-                        text = R.string.text_to_duplicate,
-                        icon = R.drawable.vector_duplicate,
-                        shape = MenuDefaults.leadingItemShape,
-                        onClick = {
-                            onDuplicate()
-                            expanded = false
-                        }
-                    )
-                }
-
+            if (onDuplicate != null) {
                 LocalDropDownItem(
-                    text = R.string.text_edit,
-                    icon = R.drawable.vector_edit,
-                    shape = if (onDuplicate == null) MenuDefaults.leadingItemShape else MenuDefaults.middleItemShape,
-                    onClick = setModifiable
-                )
-
-                if (onReloadImages != null) {
-                    LocalDropDownItem(
-                        text = R.string.text_download_photos,
-                        icon = R.drawable.vector_download,
-                        shape = MenuDefaults.middleItemShape,
-                        onClick = {
-                            onReloadImages()
-                            expanded = false
-                        }
-                    )
-                }
-
-                LocalDropDownItem(
-                    text = R.string.text_delete,
-                    icon = R.drawable.vector_delete,
-                    shape = MenuDefaults.trailingItemShape,
+                    text = R.string.text_to_duplicate,
+                    icon = R.drawable.vector_duplicate,
                     onClick = {
-                        onShowDialog()
+                        onDuplicate()
                         expanded = false
                     }
                 )
             }
+
+            LocalDropDownItem(
+                text = R.string.text_edit,
+                icon = R.drawable.vector_edit,
+                onClick = setModifiable
+            )
+
+            if (onReloadImages != null) {
+                LocalDropDownItem(
+                    text = R.string.text_download_photos,
+                    icon = R.drawable.vector_download,
+                    onClick = {
+                        onReloadImages()
+                        expanded = false
+                    }
+                )
+            }
+
+            LocalDropDownItem(
+                text = R.string.text_delete,
+                icon = R.drawable.vector_delete,
+                onClick = {
+                    onShowDialog()
+                    expanded = false
+                }
+            )
         }
     } else {
-        OutlinedIconButton(onSave) { VectorIcon(R.drawable.vector_confirm) }
+        OutlinedIconButton(onClick = onSave) { VectorIcon(R.drawable.vector_confirm) }
     }
 }

@@ -1,6 +1,7 @@
 package ru.application.homemedkit.ui.screens.permissions
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Build.VERSION
 import androidx.annotation.StringRes
@@ -64,9 +65,18 @@ fun PermissionsScreen(onBack: () -> Unit, onFirstExit: () -> Unit = onBack) {
         }
     )
 
-    val scheduleExactAlarms = rememberPermissionState(Manifest.permission.SCHEDULE_EXACT_ALARM)
-    val postNotifications = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-    val fullScreenIntent = rememberPermissionState(Manifest.permission.USE_FULL_SCREEN_INTENT)
+    val scheduleExactAlarms = rememberPermissionState(
+        if (VERSION.SDK_INT >= Build.VERSION_CODES.S) Manifest.permission.SCHEDULE_EXACT_ALARM
+        else "android.permission.SCHEDULE_EXACT_ALARM"
+    )
+    val postNotifications = rememberPermissionState(
+        if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS
+        else "android.permission.POST_NOTIFICATIONS"
+    )
+    val fullScreenIntent = rememberPermissionState(
+        if (VERSION.SDK_INT >= Build.VERSION_CODES.Q) Manifest.permission.USE_FULL_SCREEN_INTENT
+        else "android.permission.USE_FULL_SCREEN_INTENT"
+    )
     val ignoreBattery = rememberPermissionState(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
 
     Column(

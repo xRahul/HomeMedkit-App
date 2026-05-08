@@ -1,69 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.1.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.0)" variant="all" version="9.1.0">
+<issues format="6" by="lint 9.2.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.2.1)" variant="all" version="9.2.1">
 
     <issue
-        id="InlinedApi"
-        message="Field requires API level 31 (current min is 26): `android.provider.Settings#ACTION_REQUEST_SCHEDULE_EXACT_ALARM`"
-        errorLine1="            SCHEDULE_EXACT_ALARM -> ACTION_REQUEST_SCHEDULE_EXACT_ALARM"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk = 36"
+        errorLine2="        ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/ru/application/homemedkit/utils/permissions/Permission.kt"
-            line="53"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="InlinedApi"
-        message="Field requires API level 34 (current min is 26): `android.provider.Settings#ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT`"
-        errorLine1="            USE_FULL_SCREEN_INTENT -> ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT"
-        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/utils/permissions/Permission.kt"
-            line="55"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="InlinedApi"
-        message="Field requires API level 31 (current min is 26): `android.Manifest.permission#SCHEDULE_EXACT_ALARM`"
-        errorLine1="    val scheduleExactAlarms = rememberPermissionState(Manifest.permission.SCHEDULE_EXACT_ALARM)"
-        errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/screens/SettingsScreen.kt"
-            line="593"
-            column="55"/>
-    </issue>
-
-    <issue
-        id="InlinedApi"
-        message="Field requires API level 33 (current min is 26): `android.Manifest.permission#POST_NOTIFICATIONS`"
-        errorLine1="    val postNotifications = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)"
-        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/screens/SettingsScreen.kt"
-            line="594"
-            column="53"/>
-    </issue>
-
-    <issue
-        id="InlinedApi"
-        message="Field requires API level 29 (current min is 26): `android.Manifest.permission#USE_FULL_SCREEN_INTENT`"
-        errorLine1="    val fullScreenIntent = rememberPermissionState(Manifest.permission.USE_FULL_SCREEN_INTENT)"
-        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/screens/SettingsScreen.kt"
-            line="595"
-            column="52"/>
-    </issue>
-
-    <issue
-        id="AppBundleLocaleChanges"
-        message="Found dynamic locale changes, but did not find corresponding Play Core library calls for downloading languages and splitting by language is not disabled in the `bundle` configuration"
-        errorLine1="        configuration.setLocales(LocaleList(newLocale))"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/utils/AppLocale.kt"
-            line="23"
+            file="build.gradle.kts"
+            line="16"
             column="9"/>
     </issue>
 
@@ -74,36 +19,25 @@
         errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/ru/application/homemedkit/utils/permissions/Permission.kt"
-            line="56"
+            line="66"
             column="53"/>
     </issue>
 
     <issue
-        id="AndroidGradlePluginVersion"
-        message="A newer version of Gradle than 9.3.1 is available: 9.5.0"
-        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-bin.zip"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="GradleDependency"
+        message="A newer version of `compileSdk` than 36 is available: 37"
+        errorLine1="    compileSdk = 36"
+        errorLine2="    ~~~~~~~~~~~~~~~">
         <location
-            file="$HOME/projects/HomeMedkit-App/gradle/wrapper/gradle-wrapper.properties"
-            line="4"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.application than 9.1.0 is available: 9.2.1. (There is also a newer version of 9.1.𝑥 available, if upgrading to 9.2.1 is difficult: 9.1.1)"
-        errorLine1="gradle = &quot;9.1.0&quot;"
-        errorLine2="         ~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="7"
-            column="10"/>
+            file="build.gradle.kts"
+            line="11"
+            column="5"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.compose:compose-bom than 2026.03.01 is available: 2026.04.01"
-        errorLine1="compose-bom = &quot;2026.03.01&quot;"
+        message="A newer version of androidx.compose:compose-bom than 2026.02.00 is available: 2026.05.00"
+        errorLine1="compose-bom = &quot;2026.02.00&quot;"
         errorLine2="              ~~~~~~~~~~~~">
         <location
             file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
@@ -113,35 +47,68 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.compose.material3:material3 than 1.5.0-alpha17 is available: 1.5.0-alpha18"
-        errorLine1="material3 = &quot;1.5.0-alpha17&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~">
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-compose than 2.9.0 is available: 2.10.0"
+        errorLine1="compose-lifecycle = &quot;2.9.0&quot;"
+        errorLine2="                    ~~~~~~~">
         <location
             file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="13"
-            column="13"/>
+            line="5"
+            column="21"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.navigation3:navigation3-runtime than 1.1.0 is available: 1.1.1"
-        errorLine1="navigation3 = &quot;1.1.0&quot;"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.9.0 is available: 2.10.0"
+        errorLine1="compose-lifecycle = &quot;2.9.0&quot;"
+        errorLine2="                    ~~~~~~~">
+        <location
+            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
+            line="5"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-navigation3 than 2.9.0 is available: 2.10.0"
+        errorLine1="compose-lifecycle = &quot;2.9.0&quot;"
+        errorLine2="                    ~~~~~~~">
+        <location
+            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
+            line="5"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation3:navigation3-runtime than 1.0.0 is available: 1.1.1"
+        errorLine1="navigation3 = &quot;1.0.0&quot;"
         errorLine2="              ~~~~~~~">
         <location
             file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="14"
+            line="15"
             column="15"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.navigation3:navigation3-ui than 1.1.0 is available: 1.1.1"
-        errorLine1="navigation3 = &quot;1.1.0&quot;"
+        message="A newer version of androidx.navigation3:navigation3-ui than 1.0.0 is available: 1.1.1"
+        errorLine1="navigation3 = &quot;1.0.0&quot;"
         errorLine2="              ~~~~~~~">
         <location
             file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="14"
+            line="15"
             column="15"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.android.gms:play-services-auth than 21.3.0 is available: 21.5.1"
+        errorLine1="play-services-auth = &quot;21.3.0&quot;"
+        errorLine2="                     ~~~~~~~~">
+        <location
+            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
+            line="22"
+            column="22"/>
     </issue>
 
     <issue
@@ -168,156 +135,13 @@
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.3.20 is available: 2.3.21"
-        errorLine1="kotlin = &quot;2.3.20&quot;"
-        errorLine2="         ~~~~~~~~">
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-serialization-json than 1.10.0 is available: 1.11.0"
+        errorLine1="kotlinx-serialization-json = &quot;1.10.0&quot;"
+        errorLine2="                             ~~~~~~~~">
         <location
             file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="9"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.plugin.serialization than 2.3.20 is available: 2.3.21"
-        errorLine1="kotlin = &quot;2.3.20&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="9"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.ktor:ktor-client-android than 3.4.2 is available: 3.4.3"
-        errorLine1="ktor = &quot;3.4.2&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="11"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.ktor:ktor-client-auth than 3.4.2 is available: 3.4.3"
-        errorLine1="ktor = &quot;3.4.2&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="11"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.ktor:ktor-client-content-negotiation than 3.4.2 is available: 3.4.3"
-        errorLine1="ktor = &quot;3.4.2&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="11"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.ktor:ktor-client-core than 3.4.2 is available: 3.4.3"
-        errorLine1="ktor = &quot;3.4.2&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="11"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.ktor:ktor-serialization-kotlinx-json than 3.4.2 is available: 3.4.3"
-        errorLine1="ktor = &quot;3.4.2&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="11"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.mockk:mockk than 1.13.16 is available: 1.14.9"
-        errorLine1="mockk = &quot;1.13.16&quot;"
-        errorLine2="        ~~~~~~~~~">
-        <location
-            file="$HOME/projects/HomeMedkit-App/gradle/libs.versions.toml"
-            line="16"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                            message = context.getString(result.message),"
-        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/screens/MedicineScreen.kt"
-            line="188"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    message = context.getString(R.string.text_sync),"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/navigation/Navigation.kt"
-            line="83"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    message = context.getString(R.string.text_sync_success),"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/navigation/Navigation.kt"
-            line="88"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    message = context.getString(R.string.text_sync_error),"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/navigation/Navigation.kt"
-            line="93"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    val result = snackbarHost.showSnackbar(context.getString(result.message))"
-        errorLine2="                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ru/application/homemedkit/ui/screens/ScannerScreen.kt"
-            line="98"
-            column="60"/>
-    </issue>
-
-    <issue
-        id="MissingTranslation"
-        message="&quot;app_name&quot; is not translated in &quot;de&quot; (German), &quot;vi&quot; (Vietnamese), &quot;ta&quot; (Tamil), &quot;zh&quot; (Chinese)"
-        errorLine1="    &lt;string name=&quot;app_name&quot;>Medkit&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="2"
-            column="13"/>
+            line="10"
+            column="30"/>
     </issue>
 
     <issue
@@ -2588,12 +2412,23 @@
 
     <issue
         id="MissingTranslation"
+        message="&quot;text_provider_is_google&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;text_provider_is_google&quot;>Connected with Google&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="280"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
         message="&quot;text_remainder_after&quot; is not translated in &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
         errorLine1="    &lt;string name=&quot;text_remainder_after&quot;>Remainder after&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="280"
+            line="281"
             column="13"/>
     </issue>
 
@@ -2604,7 +2439,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="281"
+            line="282"
             column="13"/>
     </issue>
 
@@ -2615,7 +2450,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="282"
+            line="283"
             column="13"/>
     </issue>
 
@@ -2626,7 +2461,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="283"
+            line="284"
             column="13"/>
     </issue>
 
@@ -2637,7 +2472,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="284"
+            line="285"
             column="13"/>
     </issue>
 
@@ -2648,7 +2483,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="285"
+            line="286"
             column="13"/>
     </issue>
 
@@ -2659,7 +2494,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="286"
+            line="287"
             column="13"/>
     </issue>
 
@@ -2670,7 +2505,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="287"
+            line="288"
             column="13"/>
     </issue>
 
@@ -2681,7 +2516,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="288"
+            line="289"
             column="13"/>
     </issue>
 
@@ -2692,7 +2527,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="289"
+            line="290"
             column="13"/>
     </issue>
 
@@ -2703,7 +2538,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="290"
+            line="291"
             column="13"/>
     </issue>
 
@@ -2714,7 +2549,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="291"
+            line="292"
             column="13"/>
     </issue>
 
@@ -2725,7 +2560,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="292"
+            line="293"
             column="13"/>
     </issue>
 
@@ -2736,7 +2571,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="293"
+            line="294"
             column="13"/>
     </issue>
 
@@ -2747,7 +2582,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="294"
+            line="295"
             column="13"/>
     </issue>
 
@@ -2758,7 +2593,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="295"
+            line="296"
             column="13"/>
     </issue>
 
@@ -2769,7 +2604,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="296"
+            line="297"
             column="13"/>
     </issue>
 
@@ -2780,7 +2615,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="297"
+            line="298"
             column="13"/>
     </issue>
 
@@ -2791,7 +2626,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="298"
+            line="299"
             column="13"/>
     </issue>
 
@@ -2802,7 +2637,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="299"
+            line="300"
             column="13"/>
     </issue>
 
@@ -2813,7 +2648,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="300"
+            line="301"
             column="13"/>
     </issue>
 
@@ -2824,7 +2659,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="301"
+            line="302"
             column="13"/>
     </issue>
 
@@ -2835,7 +2670,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="302"
+            line="303"
             column="13"/>
     </issue>
 
@@ -2846,7 +2681,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="303"
+            line="304"
             column="13"/>
     </issue>
 
@@ -2857,7 +2692,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="304"
+            line="305"
             column="13"/>
     </issue>
 
@@ -2868,7 +2703,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="305"
+            line="306"
             column="13"/>
     </issue>
 
@@ -2879,7 +2714,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="306"
+            line="307"
             column="13"/>
     </issue>
 
@@ -2890,7 +2725,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="307"
+            line="308"
             column="13"/>
     </issue>
 
@@ -2901,7 +2736,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="308"
+            line="309"
             column="13"/>
     </issue>
 
@@ -2912,7 +2747,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="310"
+            line="311"
             column="13"/>
     </issue>
 
@@ -2923,7 +2758,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="313"
+            line="314"
             column="13"/>
     </issue>
 
@@ -2934,7 +2769,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="316"
+            line="317"
             column="14"/>
     </issue>
 
@@ -2945,99 +2780,99 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="325"
+            line="326"
             column="14"/>
     </issue>
 
     <issue
-        id="StringFormatCount"
-        message="Inconsistent number of arguments in formatting string `text_intake_time`; found both 3 here and 4 in values/strings.xml"
-        errorLine1="    &lt;string name=&quot;text_intake_time&quot;>Đã đến lúc uống thuốc %1$s\nSố lượng: %2$s %3$s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-vi/strings.xml"
-            line="40"
-            column="5"/>
+        id="MissingTranslation"
+        message="&quot;preference_ai_settings&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;preference_ai_settings&quot;>AI Settings&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="69"
-            column="5"
-            message="Conflicting number of arguments (4) here"/>
+            line="335"
+            column="13"/>
     </issue>
 
     <issue
-        id="StringFormatCount"
-        message="Inconsistent number of arguments in formatting string `text_intake_time`; found both 3 here and 4 in values/strings.xml"
-        errorLine1="    &lt;string name=&quot;text_intake_time&quot;>Medicijn: %1$s\nHoeveelheid: %2$s %3$s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-nl/strings.xml"
-            line="46"
-            column="5"/>
+        id="MissingTranslation"
+        message="&quot;preference_use_ai&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;preference_use_ai&quot;>Use AI Parsing&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="69"
-            column="5"
-            message="Conflicting number of arguments (4) here"/>
+            line="336"
+            column="13"/>
     </issue>
 
     <issue
-        id="StringFormatCount"
-        message="Inconsistent number of arguments in formatting string `text_intake_time`; found both 3 here and 4 in values/strings.xml"
-        errorLine1="    &lt;string name=&quot;text_intake_time&quot;>மருத்துவம்: %1$s\n தொகை: %2$s %3$s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-ta/strings.xml"
-            line="46"
-            column="5"/>
+        id="MissingTranslation"
+        message="&quot;preference_ai_mode&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;preference_ai_mode&quot;>AI Mode&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="69"
-            column="5"
-            message="Conflicting number of arguments (4) here"/>
+            line="337"
+            column="13"/>
     </issue>
 
     <issue
-        id="StringFormatCount"
-        message="Inconsistent number of arguments in formatting string `placeholder_time`; found both 0 here and 1 in values/strings.xml"
-        errorLine1="    &lt;string name=&quot;placeholder_time&quot;>Tijd&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-nl/strings.xml"
-            line="50"
-            column="5"/>
+        id="MissingTranslation"
+        message="&quot;preference_ai_mode_mlkit&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;preference_ai_mode_mlkit&quot;>ML Kit (Local)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="74"
-            column="5"
-            message="Conflicting number of arguments (1) here"/>
+            line="338"
+            column="13"/>
     </issue>
 
     <issue
-        id="StringFormatCount"
-        message="Inconsistent number of arguments in formatting string `text_intake_time`; found both 3 here and 4 in values/strings.xml"
-        errorLine1="    &lt;string name=&quot;text_intake_time&quot;>Medicina: %1$s\nQuantità: %2$s %3$s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-it/strings.xml"
-            line="53"
-            column="5"/>
+        id="MissingTranslation"
+        message="&quot;preference_ai_mode_gemini&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;preference_ai_mode_gemini&quot;>Gemini (Cloud)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="69"
-            column="5"
-            message="Conflicting number of arguments (4) here"/>
+            line="339"
+            column="13"/>
     </issue>
 
     <issue
-        id="UnsafeImplicitIntentLaunch"
-        message="The intent action `ACTION_CLOSE_ALL (used to send a broadcast)` matches the intent filter of a non-exported receiver, registered via a call to `Context.registerReceiver`, or similar. If you are trying to invoke this specific receiver via the action then you should use `Intent.setPackage(&lt;APPLICATION_ID>)`."
-        errorLine1="        context.sendBroadcast(Intent(ACTION_CLOSE_ALL_FULL_SCREEN_INTENTS))"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="MissingTranslation"
+        message="&quot;preference_gemini_api_key&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;preference_gemini_api_key&quot;>Gemini API Key&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/ru/application/homemedkit/receivers/ActionGroupReceiver.kt"
-            line="38"
-            column="31"/>
+            file="src/main/res/values/strings.xml"
+            line="340"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;text_medicine_salts&quot; is not translated in &quot;de&quot; (German), &quot;ru&quot; (Russian), &quot;vi&quot; (Vietnamese), &quot;pt&quot; (Portuguese), &quot;in&quot; (Indonesian), &quot;it&quot; (Italian), &quot;fr&quot; (French), &quot;ta&quot; (Tamil), &quot;es&quot; (Spanish), &quot;nl&quot; (Dutch), &quot;tr&quot; (Turkish), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;text_medicine_salts&quot;>Salts (Active Ingredients)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="341"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="TrustAllX509TrustManager"
+        message="`checkClientTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.http-client/google-http-client/2.0.0/bcb2279b29d541ab39439b244feeef2bb9feacd8/google-http-client-2.0.0.jar"/>
+    </issue>
+
+    <issue
+        id="TrustAllX509TrustManager"
+        message="`checkServerTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.http-client/google-http-client/2.0.0/bcb2279b29d541ab39439b244feeef2bb9feacd8/google-http-client-2.0.0.jar"/>
     </issue>
 
     <issue
@@ -3357,6 +3192,17 @@
             file="src/main/res/drawable/vector_type_unknown.xml"
             line="17"
             column="27"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.text_scan` appears to be unused"
+        errorLine1="    &lt;string name=&quot;text_scan&quot;>Scan&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="286"
+            column="13"/>
     </issue>
 
 </issues>

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package ru.application.homemedkit.ui.screens
 
 import android.content.BroadcastReceiver
@@ -34,7 +32,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -183,7 +180,7 @@ fun IntakeFullScreen(medicineId: Long, takenId: Long, amount: Double, onBack: ((
         ) {
             Text(
                 text = stringResource(R.string.text_taking_medicine),
-                style = MaterialTheme.typography.headlineLargeEmphasized.copy(
+                style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.W500
                 )
             )

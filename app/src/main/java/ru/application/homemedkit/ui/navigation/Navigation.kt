@@ -65,21 +65,25 @@ fun Navigation(model: MainViewModel = koinViewModel()) {
 
     val syncWorkStatus by model.syncWorkState.collectAsStateWithLifecycle()
 
+    val textSync = stringResource(R.string.text_sync)
+    val textSyncSuccess = stringResource(R.string.text_sync_success)
+    val textSyncError = stringResource(R.string.text_sync_error)
+
     LaunchedEffect(model.snackbarEvent) {
         model.snackbarEvent.collectLatest { workStatus ->
             when (workStatus) {
                 WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING -> snackbarHost.showSnackbar(
-                    message = context.getString(R.string.text_sync),
+                    message = textSync,
                     duration = SnackbarDuration.Indefinite
                 )
 
                 WorkInfo.State.SUCCEEDED -> snackbarHost.showSnackbar(
-                    message = context.getString(R.string.text_sync_success),
+                    message = textSyncSuccess,
                     duration = SnackbarDuration.Short
                 )
 
                 WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> snackbarHost.showSnackbar(
-                    message = context.getString(R.string.text_sync_error),
+                    message = textSyncError,
                     duration = SnackbarDuration.Short
                 )
 
