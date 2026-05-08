@@ -121,6 +121,7 @@ import ru.application.homemedkit.utils.KEY_USE_AI
 import ru.application.homemedkit.utils.KEY_USE_ALARM_CLOCK
 import ru.application.homemedkit.utils.KEY_USE_VIBRATION_SCAN
 import ru.application.homemedkit.utils.AppLocale
+import ru.application.homemedkit.utils.CLIENT_ID_YANDEX
 import ru.application.homemedkit.utils.DataManager
 import ru.application.homemedkit.utils.KEY_AUTOLAUNCH
 import ru.application.homemedkit.utils.KEY_FIXING
@@ -360,21 +361,23 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
                 )
             )
 
-            twoTargetSwitchPreference(
-                key = KEY_AUTO_SYNC_ENABLED,
-                defaultValue = false,
-                onClick = { onAuthClick() },
-                switchEnabled = { Preferences.token != null },
-                title = { Text(stringResource(R.string.text_sync)) },
-                summary = { enabled ->
-                    Text(
-                        text = stringResource(
-                            id = if (enabled) R.string.preference_auto_sync_summary_enabled
-                            else R.string.preference_auto_sync_summary_disabled
+            if (CLIENT_ID_YANDEX.isNotBlank()) {
+                twoTargetSwitchPreference(
+                    key = KEY_AUTO_SYNC_ENABLED,
+                    defaultValue = false,
+                    onClick = { onAuthClick() },
+                    switchEnabled = { Preferences.token != null },
+                    title = { Text(stringResource(R.string.text_sync)) },
+                    summary = { enabled ->
+                        Text(
+                            text = stringResource(
+                                id = if (enabled) R.string.preference_auto_sync_summary_enabled
+                                else R.string.preference_auto_sync_summary_disabled
+                            )
                         )
-                    )
-                }
-            )
+                    }
+                )
+            }
 
             preference(
                 key = KEY_PERMISSIONS,

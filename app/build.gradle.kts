@@ -31,8 +31,18 @@ android {
         buildConfig = true
     }
 
-    val yandexClientId: String = System.getenv("YANDEX_CLIENT_ID") ?: ""
-    val yandexClientSecret: String = System.getenv("YANDEX_CLIENT_SECRET") ?: ""
+    val properties = java.util.Properties()
+    val localPropertiesFile = project.rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { properties.load(it) }
+    }
+
+    val yandexClientId: String = System.getenv("YANDEX_CLIENT_ID")
+        ?: properties.getProperty("YANDEX_CLIENT_ID")
+        ?: ""
+    val yandexClientSecret: String = System.getenv("YANDEX_CLIENT_SECRET")
+        ?: properties.getProperty("YANDEX_CLIENT_SECRET")
+        ?: ""
 
     defaultConfig {
         buildConfigField("String", "CLIENT_ID_YANDEX", "\"$yandexClientId\"")
