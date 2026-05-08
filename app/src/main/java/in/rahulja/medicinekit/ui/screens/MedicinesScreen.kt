@@ -185,7 +185,7 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                         },
                         modifier = Modifier.padding(bottom = 8.dp)
                     ) {
-                        VectorIcon(R.drawable.vector_camera)
+                        VectorIcon(R.drawable.vector_add_photo)
                     }
                     SmallFloatingActionButton(
                         onClick = {
