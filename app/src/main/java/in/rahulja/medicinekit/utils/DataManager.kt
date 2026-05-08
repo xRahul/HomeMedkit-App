@@ -160,8 +160,8 @@ object DataManager {
                         }
                     }
                 }
-            }
-            true
+                true
+            } ?: false
         } catch (_: Exception) {
             false
         }
@@ -194,8 +194,8 @@ object DataManager {
                         entry = zipInputStream.nextEntry
                     }
                 }
-            }
-            true
+                true
+            } ?: false
         } catch (_: Exception) {
             false
         }
@@ -257,9 +257,9 @@ object DataManager {
         val images = MedicineDatabase.getInstance(context).medicineDAO().getAllImageNames().toSet()
 
         coroutineScope {
-            launch { context.cacheDir.deleteRecursively() }
+            launch { context.cacheDir?.deleteRecursively() }
             launch {
-                context.filesDir.listFiles { file ->
+                context.filesDir?.listFiles { file ->
                     val mimeType = mimeTypeMap.getMimeTypeFromExtension(file.extension)
 
                     mimeType != null && mimeType.startsWith(MimeType.IMAGES) && file.name !in images

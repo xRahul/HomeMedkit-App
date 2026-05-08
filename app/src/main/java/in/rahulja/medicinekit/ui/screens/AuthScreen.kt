@@ -217,33 +217,11 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
                             }
                         )
 
-                        val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
-                            androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-                        ) { result ->
-                            if (result.resultCode == android.app.Activity.RESULT_OK) {
-                                val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                                try {
-                                    val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
-                                    `in`.rahulja.medicinekit.network.GoogleDriveApi.init(context)
-                                    model.loginGoogle(account?.account!!)
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        }
-
-                        val gso = com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestEmail()
-                            .requestScopes(com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_FILE))
-                            .requestScopes(com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_APPDATA))
-                            .build()
-                        val mGoogleSignInClient = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(context, gso)
-
-                        LocalProviderButton(
-                            onClick = { launcher.launch(mGoogleSignInClient.signInIntent) },
-                            icon = R.drawable.vector_google,
-                            text = R.string.text_google,
-                            enabled = true
+                        Text(
+                            text = stringResource(R.string.text_google_saf_notice),
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
