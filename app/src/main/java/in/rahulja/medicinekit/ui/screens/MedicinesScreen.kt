@@ -35,6 +35,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import `in`.rahulja.medicinekit.R
 import `in`.rahulja.medicinekit.R.string.text_exit_app
@@ -102,7 +106,13 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
     }
 
     LaunchedEffect(state.listView) {
-        pagerState.animateScrollToPage(state.listView.ordinal)
+        if (pagerState.currentPage != state.listView.ordinal) {
+            pagerState.animateScrollToPage(state.listView.ordinal)
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        model.pickView(MedicineListView.entries[pagerState.currentPage])
     }
 
     val onItemClick = remember {
@@ -115,6 +125,13 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
     ScaffoldSearchBar(
         search = state.search,
         onSearch = model::onSearch,
+        navigationIcon = {
+            VectorIcon(
+                icon = R.drawable.vector_medicine,
+                modifier = Modifier.padding(start = 8.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
         actions = {
             IconButton(model::showSorting) { VectorIcon(R.drawable.vector_sort) }
             DropdownMenu(
@@ -133,21 +150,6 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                         text = { Text(stringResource(entry.title)) }
                     )
                 }
-
-                HorizontalDivider()
-
-                Text(
-                    text = stringResource(R.string.text_list_view),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
-                MedicineListView.entries.fastForEach { entry ->
-                    DropdownMenuItem(
-                        onClick = { model.pickView(entry) },
-                        text = { Text(stringResource(entry.title)) }
-                    )
-                }
             }
 
             IconButton(model::toggleFilter) {
@@ -159,10 +161,15 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
         },
         floatingActionButton = {
             var expanded by remember { mutableStateOf(false) }
-            Column(horizontalAlignment = Alignment.End) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
                 if (expanded) {
                     FloatingActionButton(
-                        onClick = { 
+                        onClick = {
                             onNavigate(Screen.Scanner)
                             expanded = false
                         },
@@ -171,7 +178,7 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                         VectorIcon(R.drawable.vector_scanner)
                     }
                     FloatingActionButton(
-                        onClick = { 
+                        onClick = {
                             onNavigate(Screen.Medicine())
                             expanded = false
                         },
@@ -183,7 +190,7 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                 FloatingActionButton(
                     onClick = { expanded = !expanded }
                 ) {
-                    val rotation by animateFloatAsState(if (expanded) 45f else 0f)
+                    val rotation by animateFloatAsState(if (expanded) 45f else 0f, label = "fabRotation")
                     VectorIcon(
                         icon = R.drawable.vector_add,
                         modifier = Modifier.rotate(rotation)
@@ -192,45 +199,68 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
             }
         }
     ) {
-        HorizontalPager(pagerState, userScrollEnabled = false) { page ->
-            when (MedicineListView.entries[page]) {
-                MedicineListView.LIST -> if (medicines.isNotEmpty()) {
-                    LazyColumn(Modifier.fillMaxSize(), listStates[0]) {
-                        items(medicines, MedicineList::id) { medicine ->
-                            MedicineItem(
-                                medicine = medicine,
-                                onClick = onItemClick,
-                                modifier = Modifier
-                                    .animateItem()
-                                    .drawHorizontalDivider(color)
+        val scope = rememberCoroutineScope()
+        Column {
+            PrimaryTabRow(pagerState.targetPage) {
+                MedicineListView.entries.fastForEach { view ->
+                    Tab(
+                        selected = pagerState.targetPage == view.ordinal,
+                        onClick = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(view.ordinal)
+                            }
+                        },
+                        text = {
+                            Text(
+                                text = stringResource(view.title),
+                                overflow = TextOverflow.Visible,
+                                softWrap = false
                             )
                         }
-                    }
-                } else {
-                    BoxWithEmptyListText(R.string.text_no_data_found)
+                    )
                 }
+            }
 
-                MedicineListView.GROUPS -> if (grouped.isNotEmpty()) {
-                    LazyColumn(Modifier.fillMaxSize(), listStates[1]) {
-                        grouped.fastForEach { group ->
-                            item(group.kit.id) {
-                                TextDate(group.kit.title.asString())
-                            }
-
-                            itemsIndexed(
-                                items = group.medicines,
-                                key = { _, item -> Pair(group.kit.id, item.id) }
-                            ) { _, medicine ->
-                                SegmentedMedicineItem(
+            HorizontalPager(pagerState) { page ->
+                when (MedicineListView.entries[page]) {
+                    MedicineListView.LIST -> if (medicines.isNotEmpty()) {
+                        LazyColumn(Modifier.fillMaxSize(), listStates[0]) {
+                            items(medicines, MedicineList::id) { medicine ->
+                                MedicineItem(
                                     medicine = medicine,
                                     onClick = onItemClick,
-                                    modifier = Modifier.animateItem()
+                                    modifier = Modifier
+                                        .animateItem()
+                                        .drawHorizontalDivider(color)
                                 )
                             }
                         }
+                    } else {
+                        BoxWithEmptyListText(R.string.text_no_data_found)
                     }
-                } else {
-                    BoxWithEmptyListText(R.string.text_no_data_group_found)
+
+                    MedicineListView.GROUPS -> if (grouped.isNotEmpty()) {
+                        LazyColumn(Modifier.fillMaxSize(), listStates[1]) {
+                            grouped.fastForEach { group ->
+                                item(group.kit.id) {
+                                    TextDate(group.kit.title.asString())
+                                }
+
+                                itemsIndexed(
+                                    items = group.medicines,
+                                    key = { _, item -> Pair(group.kit.id, item.id) }
+                                ) { _, medicine ->
+                                    SegmentedMedicineItem(
+                                        medicine = medicine,
+                                        onClick = onItemClick,
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        BoxWithEmptyListText(R.string.text_no_data_group_found)
+                    }
                 }
             }
         }

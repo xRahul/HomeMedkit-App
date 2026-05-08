@@ -146,7 +146,7 @@ fun IntakesScreen(onNavigate: (Long) -> Unit) {
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = IntakeTab.entries[pagerState.currentPage] == IntakeTab.PAST,
+                visible = IntakeTab.entries[pagerState.currentPage] != IntakeTab.LIST,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)
