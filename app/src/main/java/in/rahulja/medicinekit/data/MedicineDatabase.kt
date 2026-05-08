@@ -66,7 +66,7 @@ abstract class MedicineDatabase : RoomDatabase() {
                 klass = MedicineDatabase::class.java,
                 name = DATABASE_NAME
             )
-                .addMigrations(MIGRATION_1_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_33_34, MIGRATION_34_35, MIGRATION_35_36)
+                .addMigrations(MIGRATION_1_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_33_34, MIGRATION_34_35, MIGRATION_35_36, MIGRATION_36_37)
                 .setQueryCoroutineContext(Dispatchers.IO)
                 .build()
                 .also { INSTANCE = it }

@@ -1,4 +1,4 @@
-name: 'Release'
+name: Release
 
 on:
   workflow_dispatch:
@@ -197,10 +197,11 @@ jobs:
       - name: 'Checkout repository'
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: 'Download artifacts'
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v7
         with:
           name: release-artifacts
 
