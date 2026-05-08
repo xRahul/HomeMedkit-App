@@ -51,7 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import kotlinx.coroutines.flow.collectLatest
 import `in`.rahulja.medicinekit.R
 import `in`.rahulja.medicinekit.models.events.ScannerEvent
@@ -71,7 +71,7 @@ import `in`.rahulja.medicinekit.utils.permissions.PermissionState
 import `in`.rahulja.medicinekit.utils.permissions.rememberPermissionState
 
 @Composable
-fun ScannerScreen(model: ScannerViewModel = viewModel(), onBack: () -> Unit, onNavigate: (Screen) -> Unit) {
+fun ScannerScreen(model: ScannerViewModel = koinViewModel(), onBack: () -> Unit, onNavigate: (Screen) -> Unit) {
     val resources = LocalResources.current
     val context = LocalContext.current
     val filesDir = context.filesDir

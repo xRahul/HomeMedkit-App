@@ -131,8 +131,8 @@ jobs:
       - name: 'Setup Gradle'
         uses: gradle/actions/setup-gradle@v6
 
-      - name: 'Build release APK & AAB'
-        run: ./gradlew assembleRelease bundleRelease
+      - name: 'Build release artifacts'
+        run: ./gradlew assembleRelease assembleDebug bundleRelease
         env:
           YANDEX_CLIENT_ID: ${{ secrets.YANDEX_CLIENT_ID }}
           YANDEX_CLIENT_SECRET: ${{ secrets.YANDEX_CLIENT_SECRET }}
@@ -142,6 +142,16 @@ jobs:
         uses: ilharp/sign-android-release@v2
         with:
           releaseDir: app/build/outputs/apk/release
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: 'Sign debug APK'
+        id: sign_debug_apk
+        uses: ilharp/sign-android-release@v2
+        with:
+          releaseDir: app/build/outputs/apk/debug
           signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
           keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -161,6 +171,9 @@ jobs:
         run: |
           SIGNED_APK_FILE=$(find ${{ steps.sign_apk.outputs.signedFile }} -name '*.apk' | head -n 1)
           mv "$SIGNED_APK_FILE" "MedicineKit.apk"
+
+          SIGNED_DEBUG_APK_FILE=$(find ${{ steps.sign_debug_apk.outputs.signedFile }} -name '*.apk' | head -n 1)
+          mv "$SIGNED_DEBUG_APK_FILE" "MedicineKit-debug.apk"
           
           SIGNED_AAB_FILE=$(find ${{ steps.sign_aab.outputs.signedFile }} -name '*.aab' | head -n 1)
           mv "$SIGNED_AAB_FILE" "MedicineKit.aab"
@@ -171,6 +184,7 @@ jobs:
           name: release-artifacts
           path: |
             MedicineKit.apk
+            MedicineKit-debug.apk
             MedicineKit.aab
 
   create-release:
@@ -221,4 +235,5 @@ jobs:
           body: ${{ steps.changelog.outputs.body }}
           files: |
             MedicineKit.apk
+            MedicineKit-debug.apk
             MedicineKit.aab
