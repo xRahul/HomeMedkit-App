@@ -17,7 +17,7 @@ interface AlarmDAO : BaseDAO<Alarm> {
         FROM alarms
         JOIN intakes ON intakes.intakeId = alarms.intakeId 
         JOIN medicines ON medicines.id = intakes.medicineId 
-        JOIN images ON images.medicineId = medicines.id
+        LEFT JOIN images ON images.medicineId = medicines.id
         WHERE (:search = '' OR LOWER(medicines.productName) LIKE '%' || LOWER(:search) || '%')
         GROUP BY alarms.alarmId
         ORDER BY alarms.`trigger`

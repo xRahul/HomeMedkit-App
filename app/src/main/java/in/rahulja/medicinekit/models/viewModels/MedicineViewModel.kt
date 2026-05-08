@@ -25,6 +25,7 @@ import `in`.rahulja.medicinekit.models.validation.Validation
 import `in`.rahulja.medicinekit.network.Network
 import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.Formatter
+import `in`.rahulja.medicinekit.utils.enums.DoseType
 import `in`.rahulja.medicinekit.utils.enums.DrugType
 import `in`.rahulja.medicinekit.utils.enums.ImageEditing
 import `in`.rahulja.medicinekit.utils.extensions.asMedicine
@@ -141,15 +142,32 @@ class MedicineViewModel(
                             )
                         }
 
-                        coroutineScope {
-                            val jobOne = launch { dao.update(medicine) }
-                            val jobTow = launch { dao.updateImages(images.await()) }
+                        if (currentState.id != 0L) {
+                            coroutineScope {
+                                val jobOne = launch { dao.update(medicine) }
+                                val jobTow = launch { dao.updateImages(images.await()) }
 
-                            joinAll(jobOne, jobTow)
-                        }
+                                joinAll(jobOne, jobTow)
+                            }
 
-                        dao.getById(id)?.let { medicine ->
-                            updateState { medicine.toState() }
+                            dao.getById(id)?.let { medicineFull ->
+                                updateState { medicineFull.toState() }
+                            }
+                        } else {
+                            val fetchedImages = images.await().map { it.image }
+                            updateState {
+                                it.copy(
+                                    productName = medicine.productName.ifEmpty { it.productName },
+                                    expDate = if (it.expDate == -1L) medicine.expDate else it.expDate,
+                                    expDateString = if (it.expDate == -1L) Formatter.toExpDate(medicine.expDate) else it.expDateString,
+                                    prodFormNormName = medicine.prodFormNormName.ifEmpty { it.prodFormNormName },
+                                    prodDNormName = medicine.prodDNormName.ifEmpty { it.prodDNormName },
+                                    doseType = if (it.doseType == DoseType.UNKNOWN) medicine.doseType else it.doseType,
+                                    phKinetics = medicine.phKinetics.ifEmpty { it.phKinetics },
+                                    prodAmount = if (it.prodAmount == BLANK) medicine.prodAmount.toString() else it.prodAmount,
+                                    images = (it.images + fetchedImages).distinct()
+                                )
+                            }
                         }
                     }
 
