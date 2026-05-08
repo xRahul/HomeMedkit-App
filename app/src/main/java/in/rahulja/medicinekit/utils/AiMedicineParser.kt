@@ -12,9 +12,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.graphics.Matrix
 import android.os.Build
 import android.provider.MediaStore
 import java.io.IOException
+import kotlin.math.max
 
 @Serializable
 data class AiMedicineResult(
@@ -86,7 +88,7 @@ object AiMedicineParser {
 
     private fun getBitmapFromUri(context: Context, uri: Uri): Bitmap? {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val source = ImageDecoder.createSource(context.contentResolver, uri)
                 ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
                     decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
@@ -96,7 +98,20 @@ object AiMedicineParser {
                 @Suppress("DEPRECATION")
                 MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
             }
-        } catch (e: IOException) {
+
+            val maxDimension = 1024
+            val width = bitmap.width
+            val height = bitmap.height
+
+            if (max(width, height) > maxDimension) {
+                val scale = maxDimension.toFloat() / max(width, height)
+                val matrix = Matrix()
+                matrix.postScale(scale, scale)
+                Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true)
+            } else {
+                bitmap
+            }
+        } catch (e: Exception) {
             e.printStackTrace()
             null
         }

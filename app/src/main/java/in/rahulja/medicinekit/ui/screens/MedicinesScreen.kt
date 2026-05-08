@@ -36,6 +36,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -168,7 +169,7 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                     .padding(16.dp)
             ) {
                 if (expanded) {
-                    FloatingActionButton(
+                    SmallFloatingActionButton(
                         onClick = {
                             onNavigate(Screen.Scanner)
                             expanded = false
@@ -177,7 +178,7 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                     ) {
                         VectorIcon(R.drawable.vector_scanner)
                     }
-                    FloatingActionButton(
+                    SmallFloatingActionButton(
                         onClick = {
                             onNavigate(Screen.Medicine(openCamera = true))
                             expanded = false
@@ -186,7 +187,7 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                     ) {
                         VectorIcon(R.drawable.vector_camera)
                     }
-                    FloatingActionButton(
+                    SmallFloatingActionButton(
                         onClick = {
                             onNavigate(Screen.Medicine())
                             expanded = false

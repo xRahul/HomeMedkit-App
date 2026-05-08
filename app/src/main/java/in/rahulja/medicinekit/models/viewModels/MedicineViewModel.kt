@@ -317,7 +317,8 @@ class MedicineViewModel(
                                         productName = if (it.productName.isBlank()) cleanedText.take(50) else it.productName,
                                         comment = if (it.comment.isBlank()) cleanedText.take(100) else it.comment,
                                         isLoading = false,
-                                        loadingMessage = null
+                                        loadingMessage = null,
+                                        dialogState = MedicineDialogState.PictureGrid
                                     )
                                 }
                             } else if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI) {
@@ -342,20 +343,21 @@ class MedicineViewModel(
                                             recommendations = result.recommendations.ifBlank { it.recommendations },
                                             storageConditions = result.storage.ifBlank { it.storageConditions },
                                             isLoading = false,
-                                            loadingMessage = null
+                                            loadingMessage = null,
+                                            dialogState = MedicineDialogState.PictureGrid
                                         )
                                     }
                                 } else {
-                                    updateState { it.copy(isLoading = false, loadingMessage = null) }
+                                    updateState { it.copy(isLoading = false, loadingMessage = null, dialogState = MedicineDialogState.PictureGrid) }
                                     _action.send(MedicineAction.ShowSnackbar.OnShowError())
                                 }
                             }
                         } else {
-                            updateState { it.copy(isLoading = false, loadingMessage = null) }
+                            updateState { it.copy(isLoading = false, loadingMessage = null, dialogState = MedicineDialogState.PictureGrid) }
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        updateState { it.copy(isLoading = false, loadingMessage = null) }
+                        updateState { it.copy(isLoading = false, loadingMessage = null, dialogState = MedicineDialogState.PictureGrid) }
                         _action.send(MedicineAction.ShowSnackbar.OnShowError())
                     }
                 }
