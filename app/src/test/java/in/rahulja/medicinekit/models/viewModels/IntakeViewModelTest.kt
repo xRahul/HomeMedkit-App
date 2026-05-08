@@ -48,7 +48,7 @@ class IntakeViewModelTest {
         Dispatchers.setMain(testDispatcher)
 
         // Mock AppModule and Preferences getter
-        mockkStatic("`in`.rahulja.medicinekit.utils.di.AppModuleKt")
+        mockkStatic("in.rahulja.medicinekit.utils.di.AppModuleKt")
         every { `in`.rahulja.medicinekit.utils.di.Preferences } returns preferences
         every { preferences.isFirstLaunch } returns false
         
