@@ -224,17 +224,17 @@ jobs:
           
           DESC="### 📦 Which version to install?
 
-| File | Description | Recommended for... |
-| :--- | :--- | :--- |
-| **MedicineKit.apk** | Standard release version. Highly optimized and secure. | **Most users.** |
-| **MedicineKit-debug.apk** | Debug-friendly version. Includes readable logs and popups for troubleshooting. | **Reporting bugs / developers.** |
+          | File | Description | Recommended for... |
+          | :--- | :--- | :--- |
+          | **MedicineKit.apk** | Standard release version. Highly optimized and secure. | **Most users.** |
+          | **MedicineKit-debug.apk** | Debug-friendly version. Includes readable logs and popups for troubleshooting. | **Reporting bugs / developers.** |
 
-> [!TIP]
-> Both versions are signed with the same key. You can install the debug version over the release version (and vice-versa) without losing your data.
+          > [!TIP]
+          > Both versions are signed with the same key. You can install the debug version over the release version (and vice-versa) without losing your data.
 
----
-### 📝 Changelog
-"
+          ---
+          ### 📝 Changelog
+          "
           
           echo 'body<<EOF' >> $GITHUB_OUTPUT
           echo "$DESC" >> $GITHUB_OUTPUT
