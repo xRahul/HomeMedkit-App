@@ -14,8 +14,8 @@ android {
         applicationId = "in.rahulja.medicinekit"
         minSdk = 26
         targetSdk = 37
-        versionCode = 14
-        versionName = "1.0.4"
+        versionCode = 15
+        versionName = "1.1.0"
     }
 
     dependenciesInfo {
