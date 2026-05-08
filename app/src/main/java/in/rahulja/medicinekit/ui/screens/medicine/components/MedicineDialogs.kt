@@ -113,7 +113,7 @@ fun MedicineDialogs(
     val context = LocalContext.current
 
     when (val dialog = state.dialogState) {
-        MedicineDialogState.Loading -> BoxLoading(Modifier.zIndex(10f))
+        MedicineDialogState.Loading -> BoxLoading(Modifier.zIndex(10f), state.loadingMessage)
 
         MedicineDialogState.DataLoss -> DialogDataLoss(
             onDismiss = { event(MedicineEvent.ToggleDialog(MedicineDialogState.DataLoss)) },
@@ -316,7 +316,7 @@ fun CameraPhotoPreview(scope: CoroutineScope, event: (MedicineEvent) -> Unit) {
                                     context = context,
                                     uri = android.net.Uri.fromFile(java.io.File(context.filesDir, image)),
                                     useAi = useAi,
-                                    aiMode = `in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT,
+                                    aiMode = `in`.rahulja.medicinekit.utils.di.Preferences.aiMode,
                                     apiKey = `in`.rahulja.medicinekit.utils.di.Preferences.geminiApiKey
                                 )
                             )

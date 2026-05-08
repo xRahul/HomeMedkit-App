@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun BoxWithEmptyListText(@StringRes text: Int, modifier: Modifier = Modifier) =
@@ -23,8 +24,23 @@ fun BoxWithEmptyListText(@StringRes text: Int, modifier: Modifier = Modifier) =
     }
 
 @Composable
-fun BoxLoading(modifier: Modifier = Modifier) = Box(
-    content = { CircularProgressIndicator() },
+fun BoxLoading(modifier: Modifier = Modifier, message: String? = null) = Box(
+    content = {
+        androidx.compose.foundation.layout.Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+        ) {
+            CircularProgressIndicator(color = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+            if (message != null) {
+                Text(
+                    text = message,
+                    color = Color.White,
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    },
     contentAlignment = Alignment.Center,
     modifier = modifier
         .fillMaxSize()

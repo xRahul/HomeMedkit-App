@@ -31,7 +31,8 @@ sealed interface Screen : NavKey {
     data class Medicine(
         val id: Long = 0L,
         val cis: String = BLANK,
-        val duplicate: Boolean = false
+        val duplicate: Boolean = false,
+        val openCamera: Boolean = false
     ) : Screen
 
     @Serializable

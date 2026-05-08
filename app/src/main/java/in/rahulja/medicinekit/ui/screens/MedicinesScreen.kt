@@ -179,6 +179,15 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
                     }
                     FloatingActionButton(
                         onClick = {
+                            onNavigate(Screen.Medicine(openCamera = true))
+                            expanded = false
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        VectorIcon(R.drawable.vector_camera)
+                    }
+                    FloatingActionButton(
+                        onClick = {
                             onNavigate(Screen.Medicine())
                             expanded = false
                         },

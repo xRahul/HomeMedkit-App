@@ -78,9 +78,9 @@ fun appNavGraph(navigator: Navigator, state: NavigationState): (NavKey) -> NavEn
             onNavigate = navigator::navigate
         )
     }
-    entry<Screen.Medicine> { (id, cis, duplicate) ->
+    entry<Screen.Medicine> { (id, cis, duplicate, openCamera) ->
         MedicineScreen(
-            model = koinViewModel { parametersOf(id, cis, duplicate) },
+            model = koinViewModel { parametersOf(id, cis, duplicate, openCamera) },
             onBack = { navigator.navigateAndClearStack(Screen.Medicines) },
             onGoToIntake = { navigator.navigate(Screen.Intake(medicineId = it)) }
         )

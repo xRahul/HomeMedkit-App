@@ -41,6 +41,7 @@ class MedicineViewModel(
     private val id: Long,
     private val cis: String,
     private val duplicate: Boolean,
+    private val openCamera: Boolean,
     private val dao: MedicineDAO,
     private val daoK: KitDAO
 ) : BaseViewModel<MedicineState, MedicineEvent>() {
@@ -49,6 +50,12 @@ class MedicineViewModel(
     val action = _action.receiveAsFlow()
 
     val kits = daoK.getFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList<Kit>())
+
+    init {
+        if (openCamera) {
+            updateState { it.copy(dialogState = MedicineDialogState.TakePhoto) }
+        }
+    }
 
     override fun initState() = MedicineState()
 
@@ -66,7 +73,7 @@ class MedicineViewModel(
                         adding = true,
                         isLoading = false,
                         code = cis,
-                        images = listOf(DrugType.entries.random().value)
+                        images = if (openCamera) emptyList() else listOf(DrugType.entries.random().value)
                     )
                 }
             }
@@ -297,21 +304,24 @@ class MedicineViewModel(
             is MedicineEvent.PickKit -> updateState { it.copy(kits = it.kits.toggle(event.kit)) }
 
             is MedicineEvent.ProcessImageWithAi -> {
-                updateState { it.copy(isLoading = true, dialogState = null) }
+                updateState { it.copy(isLoading = false, loadingMessage = "Extracting text from image...", dialogState = MedicineDialogState.Loading) }
                 viewModelScope.launch {
                     try {
                         val extractedText = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithMLKit(event.context, event.uri)
                         if (event.useAi) {
                             if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT) {
-                                val textLower = extractedText.lowercase()
+                                val cleanedText = extractedText.replace("\n", " ").trim()
+                                updateState { it.copy(loadingMessage = "Autofilling form...") }
                                 updateState {
                                     it.copy(
-                                        productName = if (it.productName.isBlank()) extractedText.take(50) else it.productName,
-                                        comment = if (it.comment.isBlank()) extractedText.take(100) else it.comment,
-                                        isLoading = false
+                                        productName = if (it.productName.isBlank()) cleanedText.take(50) else it.productName,
+                                        comment = if (it.comment.isBlank()) cleanedText.take(100) else it.comment,
+                                        isLoading = false,
+                                        loadingMessage = null
                                     )
                                 }
                             } else if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI) {
+                                updateState { it.copy(loadingMessage = "Structuring data with AI...") }
                                 val result = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithGemini(
                                     context = event.context,
                                     imageUri = event.uri,
@@ -320,6 +330,7 @@ class MedicineViewModel(
                                     extractedText = extractedText
                                 )
                                 if (result != null) {
+                                    updateState { it.copy(loadingMessage = "Autofilling form...") }
                                     updateState {
                                         it.copy(
                                             productName = result.name.ifBlank { it.productName },
@@ -330,20 +341,21 @@ class MedicineViewModel(
                                             phKinetics = result.indications.ifBlank { it.phKinetics },
                                             recommendations = result.recommendations.ifBlank { it.recommendations },
                                             storageConditions = result.storage.ifBlank { it.storageConditions },
-                                            isLoading = false
+                                            isLoading = false,
+                                            loadingMessage = null
                                         )
                                     }
                                 } else {
-                                    updateState { it.copy(isLoading = false) }
+                                    updateState { it.copy(isLoading = false, loadingMessage = null) }
                                     _action.send(MedicineAction.ShowSnackbar.OnShowError())
                                 }
                             }
                         } else {
-                            updateState { it.copy(isLoading = false) }
+                            updateState { it.copy(isLoading = false, loadingMessage = null) }
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        updateState { it.copy(isLoading = false) }
+                        updateState { it.copy(isLoading = false, loadingMessage = null) }
                         _action.send(MedicineAction.ShowSnackbar.OnShowError())
                     }
                 }

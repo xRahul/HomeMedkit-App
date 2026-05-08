@@ -11,6 +11,7 @@ data class MedicineState(
     val editing: Boolean = false,
     val default: Boolean = false,
     val isLoading: Boolean = true,
+    val loadingMessage: String? = null,
     val id: Long = 0L,
     val kits: Set<Kit> = emptySet(),
     val code: String = BLANK,

@@ -30,8 +30,8 @@ val appModule = module {
     // ViewModels
     viewModelOf(::MainViewModel)
     viewModel { (code: String?) -> AuthViewModel(code, get(), get()) }
-    viewModel { (id: Long, cis: String, duplicate: Boolean) ->
-        MedicineViewModel(id, cis, duplicate, get(), get())
+    viewModel { (id: Long, cis: String, duplicate: Boolean, openCamera: Boolean) ->
+        MedicineViewModel(id, cis, duplicate, openCamera, get(), get())
     }
     viewModel { (intakeId: Long, medicineId: Long) ->
         IntakeViewModel(intakeId, medicineId, get(), get(), get(), get(), get(), get())
