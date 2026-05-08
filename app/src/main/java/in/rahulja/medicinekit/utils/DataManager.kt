@@ -116,7 +116,7 @@ object DataManager {
         val path = context.getDatabasePath(database.openHelper.databaseName)
 
         try {
-            database.close()
+            MedicineDatabase.close()
 
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                 path.inputStream().use { inputStream ->
@@ -124,6 +124,77 @@ object DataManager {
                 }
             }
 
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    suspend fun exportAll(context: Context, uri: Uri) = withContext(Dispatchers.IO) {
+        val database = MedicineDatabase.getInstance(context)
+        val dbPath = context.getDatabasePath(database.openHelper.databaseName)
+        val mimeTypeMap = MimeTypeMap.getSingleton()
+        val images = context.filesDir.listFiles { file ->
+            val mimeType = mimeTypeMap.getMimeTypeFromExtension(file.extension)
+            mimeType != null && mimeType.startsWith(MimeType.IMAGES)
+        }
+
+        try {
+            MedicineDatabase.close()
+
+            context.contentResolver.openOutputStream(uri)?.let { outputStream ->
+                ZipOutputStream(outputStream).use { zipOutputStream ->
+                    // Export Database
+                    dbPath.inputStream().use { inputStream ->
+                        zipOutputStream.putNextEntry(ZipEntry(DATABASE_NAME))
+                        inputStream.copyTo(zipOutputStream)
+                        zipOutputStream.closeEntry()
+                    }
+
+                    // Export Images
+                    images?.forEach { file ->
+                        file.inputStream().use { inputStream ->
+                            zipOutputStream.putNextEntry(ZipEntry("images/${file.name}"))
+                            inputStream.copyTo(zipOutputStream)
+                            zipOutputStream.closeEntry()
+                        }
+                    }
+                }
+            }
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    suspend fun importAll(context: Context, uri: Uri) = withContext(Dispatchers.IO) {
+        try {
+            context.contentResolver.openInputStream(uri)?.let { inputStream ->
+                ZipInputStream(inputStream).use { zipInputStream ->
+                    var entry: ZipEntry? = zipInputStream.nextEntry
+
+                    while (entry != null) {
+                        if (entry.name == DATABASE_NAME) {
+                            val dbPath = context.getDatabasePath(DATABASE_NAME)
+                            AlarmSetter.getInstance(context).cancelAll()
+                            MedicineDatabase.close()
+                            dbPath.outputStream().use { outputStream ->
+                                zipInputStream.copyTo(outputStream)
+                            }
+                        } else if (entry.name.startsWith("images/")) {
+                            val fileName = entry.name.removePrefix("images/")
+                            if (fileName.isNotEmpty()) {
+                                File(context.filesDir, fileName).outputStream().use { outputStream ->
+                                    zipInputStream.copyTo(outputStream)
+                                }
+                            }
+                        }
+
+                        zipInputStream.closeEntry()
+                        entry = zipInputStream.nextEntry
+                    }
+                }
+            }
             true
         } catch (_: Exception) {
             false
@@ -162,7 +233,7 @@ object DataManager {
 
             if (currentHash == newHash) {
                 AlarmSetter.getInstance(context).cancelAll()
-                database.close()
+                MedicineDatabase.close()
 
                 tempFile.inputStream().use { inputStream ->
                     path.outputStream().use { outputStream ->
@@ -197,6 +268,52 @@ object DataManager {
         }
 
         true
+    }
+}
+
+@Composable
+fun launcherExportAll(actionHandler: ActionHandler): ActionExport {
+    val context = LocalContext.current
+    val launcher = rememberContractLauncher(
+        contract = CreateDocument(MimeType.ZIP),
+        onResult = rememberDataAction(actionHandler) { uri ->
+            DataManager.exportAll(context, uri).also { isSuccess ->
+                if (isSuccess) {
+                    Preferences.addImportedKey()
+                    context.restartApplication()
+                }
+            }
+        }
+    )
+
+    return remember(launcher) {
+        ActionExport(
+            launcher = launcher,
+            fileName = "backup_all.zip"
+        )
+    }
+}
+
+@Composable
+fun launcherImportAll(actionHandler: ActionHandler): ActionImport<String> {
+    val context = LocalContext.current
+    val launcher = rememberContractLauncher(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = rememberDataAction(actionHandler) { uri ->
+            DataManager.importAll(context, uri).also { isSuccess ->
+                if (isSuccess) {
+                    Preferences.addImportedKey()
+                    context.restartApplication()
+                }
+            }
+        }
+    )
+
+    return remember(launcher) {
+        ActionImport(
+            launcher = launcher,
+            mimeType = MimeType.ZIP
+        )
     }
 }
 

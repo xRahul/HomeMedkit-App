@@ -141,8 +141,10 @@ import `in`.rahulja.medicinekit.utils.extensions.restartApplication
 import `in`.rahulja.medicinekit.utils.extensions.showToast
 import `in`.rahulja.medicinekit.utils.launcherExportDatabase
 import `in`.rahulja.medicinekit.utils.launcherExportImages
+import `in`.rahulja.medicinekit.utils.launcherExportAll
 import `in`.rahulja.medicinekit.utils.launcherImportDatabase
 import `in`.rahulja.medicinekit.utils.launcherImportImages
+import `in`.rahulja.medicinekit.utils.launcherImportAll
 import java.util.Locale
 
 @Composable
@@ -621,6 +623,9 @@ private fun DialogData(onAction: ActionHandler, onDismiss: () -> Unit) {
     val exportDatabase = launcherExportDatabase(onAction)
     val importDatabase = launcherImportDatabase(onAction)
 
+    val exportAll = launcherExportAll(onAction)
+    val importAll = launcherImportAll(onAction)
+
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = { TextButton(onDismiss) { Text(stringResource(R.string.text_exit)) } },
@@ -638,11 +643,13 @@ private fun DialogData(onAction: ActionHandler, onDismiss: () -> Unit) {
 
                 HorizontalDivider()
 
+                LocalButton(R.string.text_import_all, importAll::launch)
                 LocalButton(R.string.text_import_database, importDatabase::launch)
                 LocalButton(R.string.text_import_images, importImages::launch)
 
                 HorizontalDivider()
 
+                LocalButton(R.string.text_export_all, exportAll::launch)
                 LocalButton(R.string.text_export_database, exportDatabase::launch)
                 LocalButton(R.string.text_export_images, exportImages::launch)
             }

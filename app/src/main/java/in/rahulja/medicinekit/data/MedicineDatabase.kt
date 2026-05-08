@@ -72,6 +72,11 @@ abstract class MedicineDatabase : RoomDatabase() {
                 .also { INSTANCE = it }
         }
 
+        fun close() {
+            INSTANCE?.close()
+            INSTANCE = null
+        }
+
         private val MIGRATION_1_30 = object : Migration(1, 30) {
             override fun migrate(db: SupportSQLiteDatabase) = Unit
         }

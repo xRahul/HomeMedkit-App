@@ -244,7 +244,6 @@ fun IntakesScreen(onNavigate: (Long) -> Unit) {
         )
 
         null -> Unit
-        else -> Unit
     }
 }
 

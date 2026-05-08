@@ -198,12 +198,14 @@
     <string name="text_exit_cloud_desc">Do you confirm that you would like to exit the cloud account?</string>
     <string name="text_export_database">Export data</string>
     <string name="text_export_images">Export images</string>
+    <string name="text_export_all">Backup all (Database + Images)</string>
     <string name="text_fill_field">Fill in this field!</string>
     <string name="text_fix_notifications">The application will restart and all overdue notifications will appear in the status bar. Do not use this function if everything works correctly!</string>
     <string name="text_images">Images</string>
     <string name="text_import_data_description">When importing, the selected data will be overwritten</string>
     <string name="text_import_database">Import data</string>
     <string name="text_import_images">Import images</string>
+    <string name="text_import_all">Restore all (Database + Images)</string>
     <string name="text_kit_list_is_empty">There are no groups found. You can add groups in the application settings.</string>
     <string name="text_kit_title">Group title</string>
     <string name="text_medicine_deleted">Medication has been deleted, it is impossible to change the intake status</string>

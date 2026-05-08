@@ -13,6 +13,9 @@ on:
           - minor
           - major
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   bump-version:
     name: Bump Version
@@ -24,12 +27,12 @@ jobs:
       version_name: ${{ steps.bump.outputs.version_name }}
     steps:
       - name: 'Checkout repository'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: 'Setup Python'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -93,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout repository'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -104,7 +107,7 @@ jobs:
           distribution: 'temurin'
 
       - name: 'Setup Gradle'
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: 'Run Lint and Tests'
         run: ./gradlew lintRelease testDebugUnitTest
@@ -115,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout repository'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -126,7 +129,7 @@ jobs:
           distribution: 'temurin'
 
       - name: 'Setup Gradle'
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: 'Build release APK & AAB'
         run: ./gradlew assembleRelease bundleRelease
@@ -178,12 +181,12 @@ jobs:
       contents: write
     steps:
       - name: 'Checkout repository'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: 'Download artifacts'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: release-artifacts
 
