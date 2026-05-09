@@ -220,6 +220,7 @@ fun AiReviewDialog(
                 ReviewItem(stringResource(R.string.text_indications_for_use), result.indications)
                 ReviewItem(stringResource(R.string.text_medicine_recommendations), result.recommendations)
                 ReviewItem(stringResource(R.string.text_medicine_storage_conditions), result.storage)
+                ReviewItem(stringResource(R.string.text_medicine_comment), result.comment)
             }
         }
     )

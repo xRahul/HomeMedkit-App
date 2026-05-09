@@ -126,7 +126,7 @@ class MedicineViewModelTest {
     }
 
     @Test
-    fun `ProcessImageWithAi with ML_KIT sanitizes extracted text`() = runTest {
+    fun `ProcessImageWithAi with ML_KIT sanitizes extracted text and shows review`() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
         val mockContext = mockk<android.content.Context>(relaxed = true)
         val mockUri = mockk<android.net.Uri>(relaxed = true)
@@ -143,7 +143,9 @@ class MedicineViewModelTest {
         
         advanceUntilIdle()
         
-        assertEquals("Line1 Line2", viewModel.state.value.productName)
+        assertEquals(MedicineDialogState.AiReview, viewModel.state.value.dialogState)
+        assertEquals("Line1 Line2", viewModel.state.value.aiResult?.name)
+        assertEquals("Line1 Line2", viewModel.state.value.aiResult?.comment)
         collectJob.cancel()
     }
 

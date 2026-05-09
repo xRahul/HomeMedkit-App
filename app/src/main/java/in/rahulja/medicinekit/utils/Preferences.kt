@@ -49,10 +49,10 @@ class Preferences internal constructor(context: Context) {
         get() = preferences.getBoolean(KEY_DOWNLOAD, true)
 
     val useAi: Boolean
-        get() = preferences.getBoolean(KEY_USE_AI, false)
+        get() = preferences.getBoolean(KEY_USE_AI, true)
 
     val useAiFlow: Flow<Boolean>
-        get() = preferences.getFlow(KEY_USE_AI, false)
+        get() = preferences.getFlow(KEY_USE_AI, true)
 
     val aiMode: AiMode
         get() = preferences.getEnum(KEY_AI_MODE, AiMode.ML_KIT)

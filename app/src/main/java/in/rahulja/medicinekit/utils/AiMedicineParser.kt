@@ -27,7 +27,8 @@ data class AiMedicineResult(
     val composition: String = "",
     val indications: String = "",
     val recommendations: String = "",
-    val storage: String = ""
+    val storage: String = "",
+    val comment: String = ""
 )
 
 object AiMedicineParser {

@@ -38,7 +38,7 @@ class SettingsViewModel(
 
     val theme = preferences.theme.stateIn(viewModelScope, SharingStarted.Eagerly, Theme.SYSTEM)
 
-    val useAi = preferences.useAiFlow.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val useAi = preferences.useAiFlow.stateIn(viewModelScope, SharingStarted.Eagerly, true)
     val aiMode = preferences.aiModeFlow.stateIn(viewModelScope, SharingStarted.Eagerly, `in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT)
     val geminiApiKey: String get() = preferences.geminiApiKey
 

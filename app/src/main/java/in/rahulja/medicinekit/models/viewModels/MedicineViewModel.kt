@@ -311,14 +311,16 @@ class MedicineViewModel(
                         if (event.useAi) {
                             if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT) {
                                 val cleanedText = extractedText.replace("\n", " ").trim()
-                                updateState { it.copy(loadingMessage = "Autofilling form...") }
+                                val result = `in`.rahulja.medicinekit.utils.AiMedicineResult(
+                                    name = cleanedText.take(50),
+                                    comment = cleanedText
+                                )
                                 updateState {
                                     it.copy(
-                                        productName = if (it.productName.isBlank()) cleanedText.take(50) else it.productName,
-                                        comment = if (it.comment.isBlank()) cleanedText.take(100) else it.comment,
+                                        aiResult = result,
                                         isLoading = false,
                                         loadingMessage = null,
-                                        dialogState = MedicineDialogState.PictureGrid
+                                        dialogState = MedicineDialogState.AiReview
                                     )
                                 }
                             } else if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI) {
@@ -367,6 +369,7 @@ class MedicineViewModel(
                             phKinetics = result.indications.ifBlank { it.phKinetics },
                             recommendations = result.recommendations.ifBlank { it.recommendations },
                             storageConditions = result.storage.ifBlank { it.storageConditions },
+                            comment = result.comment.ifBlank { it.comment },
                             dialogState = MedicineDialogState.PictureGrid,
                             aiResult = null
                         )
