@@ -45,7 +45,7 @@ object AiMedicineParser {
         }
     }
 
-    suspend fun parseWithGemini(context: Context, imageUri: Uri, apiKey: String, useImage: Boolean, extractedText: String = ""): AiMedicineResult? {
+    suspend fun parseWithGemini(context: Context, imageUri: Uri?, apiKey: String, useImage: Boolean, extractedText: String = ""): AiMedicineResult? {
         if (apiKey.isBlank()) return null
         return try {
             val generativeModel = GenerativeModel(
@@ -67,7 +67,7 @@ object AiMedicineParser {
                 Respond ONLY with the raw JSON object, no markdown formatting blocks, no extra text.
             """.trimIndent()
 
-            val response = if (useImage) {
+            val response = if (useImage && imageUri != null) {
                 val bitmap = getBitmapFromUri(context, imageUri) ?: return null
                 generativeModel.generateContent(
                     content {

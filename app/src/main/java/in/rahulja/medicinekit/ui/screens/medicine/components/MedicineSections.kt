@@ -178,6 +178,46 @@ fun MedicineAdditionalInfoSection(state: MedicineState, event: (MedicineEvent) -
                 )
             )
         }
+        if (state.adding || state.editing || state.extractedImagesText.isNotEmpty()) {
+            InfoTextField(
+                isEditing = !state.default,
+                title = stringResource(R.string.text_parsed_image_text),
+                value = state.extractedImagesText,
+                onValueChange = { event(MedicineEvent.SetExtractedImagesText(it)) },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Default
+                )
+            )
+
+            if (state.adding || state.editing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (state.images.isNotEmpty()) {
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = { event(MedicineEvent.ExtractTextFromImages(context)) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.action_extract_text))
+                        }
+                    }
+                    if (state.extractedImagesText.isNotEmpty()) {
+                        val apiKey = `in`.rahulja.medicinekit.utils.di.Preferences.geminiApiKey
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        androidx.compose.material3.Button(
+                            onClick = { event(MedicineEvent.AnalyzeTextWithGemini(context, apiKey)) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.action_format_with_gemini))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

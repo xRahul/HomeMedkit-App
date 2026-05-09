@@ -17,6 +17,7 @@ sealed interface MedicineEvent {
     data class SetPhKinetics(val phKinetics: String) : MedicineEvent
     data class SetSalts(val salts: String) : MedicineEvent
     data class SetComment(val comment: String) : MedicineEvent
+    data class SetExtractedImagesText(val text: String) : MedicineEvent
 
     data object ClearPackageDate : MedicineEvent
 
@@ -34,6 +35,9 @@ sealed interface MedicineEvent {
         val aiMode: `in`.rahulja.medicinekit.utils.enums.AiMode,
         val apiKey: String
     ) : MedicineEvent
+
+    data class ExtractTextFromImages(val context: android.content.Context) : MedicineEvent
+    data class AnalyzeTextWithGemini(val context: android.content.Context, val apiKey: String) : MedicineEvent
 
     data class OnImageReodering(val fromIndex: Int, val toIndex: Int) : MedicineEvent
 

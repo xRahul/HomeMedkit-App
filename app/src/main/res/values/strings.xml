@@ -345,4 +345,7 @@
     <string name="text_ai_review_title" translatable="false">AI Parsing Result</string>
     <string name="text_ai_review_description" translatable="false">Review the information extracted by AI. You can confirm to auto-fill the form.</string>
     <string name="text_apply" translatable="false">Apply</string>
+    <string name="text_parsed_image_text" translatable="false">Parsed Text from Images</string>
+    <string name="action_extract_text" translatable="false">Extract Text</string>
+    <string name="action_format_with_gemini" translatable="false">Auto-fill with Gemini</string>
 </resources>

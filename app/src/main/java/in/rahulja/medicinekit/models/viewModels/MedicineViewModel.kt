@@ -301,7 +301,62 @@ class MedicineViewModel(
             is MedicineEvent.SetPhKinetics -> updateState { it.copy(phKinetics = event.phKinetics) }
             is MedicineEvent.SetSalts -> updateState { it.copy(salts = event.salts) }
             is MedicineEvent.SetComment -> updateState { it.copy(comment = event.comment) }
+            is MedicineEvent.SetExtractedImagesText -> updateState { it.copy(extractedImagesText = event.text) }
             is MedicineEvent.PickKit -> updateState { it.copy(kits = it.kits.toggle(event.kit)) }
+
+            is MedicineEvent.ExtractTextFromImages -> {
+                updateState { it.copy(isLoading = true, loadingMessage = "Extracting text from all images...") }
+                viewModelScope.launch {
+                    try {
+                        val texts = mutableListOf<String>()
+                        for (imageName in currentState.images) {
+                            val uri = android.net.Uri.fromFile(File(event.context.filesDir, imageName))
+                            val text = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithMLKit(event.context, uri)
+                            if (text.isNotBlank()) {
+                                texts.add(text.replace("\n", " ").trim())
+                            }
+                        }
+                        val combinedText = texts.joinToString("\n\n")
+                        updateState { it.copy(extractedImagesText = combinedText, isLoading = false, loadingMessage = null) }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        updateState { it.copy(isLoading = false, loadingMessage = null) }
+                        _action.send(MedicineAction.ShowSnackbar.OnShowError())
+                    }
+                }
+            }
+
+            is MedicineEvent.AnalyzeTextWithGemini -> {
+                updateState { it.copy(isLoading = true, loadingMessage = "Analyzing extracted text with Gemini...") }
+                viewModelScope.launch {
+                    try {
+                        val result = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithGemini(
+                            context = event.context,
+                            imageUri = null,
+                            apiKey = event.apiKey,
+                            useImage = false,
+                            extractedText = currentState.extractedImagesText
+                        )
+                        if (result != null) {
+                            updateState {
+                                it.copy(
+                                    aiResult = result,
+                                    isLoading = false,
+                                    loadingMessage = null,
+                                    dialogState = MedicineDialogState.AiReview
+                                )
+                            }
+                        } else {
+                            updateState { it.copy(isLoading = false, loadingMessage = null) }
+                            _action.send(MedicineAction.ShowSnackbar.OnShowError())
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        updateState { it.copy(isLoading = false, loadingMessage = null) }
+                        _action.send(MedicineAction.ShowSnackbar.OnShowError())
+                    }
+                }
+            }
 
             is MedicineEvent.ProcessImageWithAi -> {
                 updateState { it.copy(isLoading = false, loadingMessage = "Extracting text from image...", dialogState = MedicineDialogState.Loading) }
