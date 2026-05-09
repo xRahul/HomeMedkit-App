@@ -36,5 +36,6 @@ data class MedicineState(
     val technical: TechnicalState = TechnicalState(),
     val imageEditing: ImageEditing = ImageEditing.ADDING,
     val isOpened: Boolean = false,
+    val aiResult: `in`.rahulja.medicinekit.utils.AiMedicineResult? = null,
     val dialogState: MedicineDialogState? = null
 )

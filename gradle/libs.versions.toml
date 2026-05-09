@@ -56,6 +56,8 @@ coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref 
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 
 ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 ktor-client-authentication = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
@@ -87,6 +89,8 @@ camera = [
 ]
 ktor = [
     "ktor-client-android",
+    "ktor-client-okhttp",
+    "ktor-client-logging",
     "ktor-client-authentication",
     "ktor-client-content-negotiation",
     "ktor-client-core",

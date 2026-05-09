@@ -19,6 +19,8 @@ sealed interface MedicineDialogState {
 
     object Delete : MedicineDialogState
 
+    object AiReview : MedicineDialogState
+
     companion object {
         fun getPage(state: MedicineDialogState?) = if (state is FullImage) state.page
         else -1

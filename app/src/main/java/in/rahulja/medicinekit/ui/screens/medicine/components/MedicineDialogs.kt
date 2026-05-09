@@ -166,7 +166,79 @@ fun MedicineDialogs(
             onConfirm = { onDelete(filesDir) }
         )
 
+        MedicineDialogState.AiReview -> AiReviewDialog(
+            result = state.aiResult,
+            onDismiss = { event(MedicineEvent.ToggleDialog(MedicineDialogState.AiReview)) },
+            onConfirm = { event(MedicineEvent.ApplyAiResult) }
+        )
+
         null -> Unit
+    }
+}
+
+@Composable
+fun AiReviewDialog(
+    result: `in`.rahulja.medicinekit.utils.AiMedicineResult?,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    if (result == null) return
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.text_apply))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.text_cancel))
+            }
+        },
+        title = { Text(stringResource(R.string.text_ai_review_title)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.text_ai_review_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                HorizontalDivider(Modifier.padding(vertical = 4.dp))
+
+                ReviewItem(stringResource(R.string.text_medicine_product_name), result.name)
+                ReviewItem(stringResource(R.string.text_medicine_salts), result.salts)
+                ReviewItem(stringResource(R.string.text_medicine_dose), result.dose)
+                ReviewItem(stringResource(R.string.text_medicine_form), result.form)
+                ReviewItem(stringResource(R.string.text_medicine_composition), result.composition)
+                ReviewItem(stringResource(R.string.text_indications_for_use), result.indications)
+                ReviewItem(stringResource(R.string.text_medicine_recommendations), result.recommendations)
+                ReviewItem(stringResource(R.string.text_medicine_storage_conditions), result.storage)
+            }
+        }
+    )
+}
+
+@Composable
+private fun ReviewItem(label: String, value: String) {
+    if (value.isNotBlank()) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }
 

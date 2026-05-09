@@ -322,7 +322,7 @@ class MedicineViewModel(
                                     )
                                 }
                             } else if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI) {
-                                updateState { it.copy(loadingMessage = "Structuring data with AI...") }
+                                updateState { it.copy(loadingMessage = "Searching knowledge base & structuring data...") }
                                 val result = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithGemini(
                                     context = event.context,
                                     imageUri = event.uri,
@@ -331,20 +331,12 @@ class MedicineViewModel(
                                     extractedText = extractedText
                                 )
                                 if (result != null) {
-                                    updateState { it.copy(loadingMessage = "Autofilling form...") }
                                     updateState {
                                         it.copy(
-                                            productName = result.name.ifBlank { it.productName },
-                                            salts = result.salts.ifBlank { it.salts },
-                                            prodDNormName = result.dose.ifBlank { it.prodDNormName },
-                                            prodFormNormName = result.form.ifBlank { it.prodFormNormName },
-                                            structure = result.composition.ifBlank { it.structure },
-                                            phKinetics = result.indications.ifBlank { it.phKinetics },
-                                            recommendations = result.recommendations.ifBlank { it.recommendations },
-                                            storageConditions = result.storage.ifBlank { it.storageConditions },
+                                            aiResult = result,
                                             isLoading = false,
                                             loadingMessage = null,
-                                            dialogState = MedicineDialogState.PictureGrid
+                                            dialogState = MedicineDialogState.AiReview
                                         )
                                     }
                                 } else {
@@ -359,6 +351,25 @@ class MedicineViewModel(
                         e.printStackTrace()
                         updateState { it.copy(isLoading = false, loadingMessage = null, dialogState = MedicineDialogState.PictureGrid) }
                         _action.send(MedicineAction.ShowSnackbar.OnShowError())
+                    }
+                }
+            }
+
+            MedicineEvent.ApplyAiResult -> {
+                currentState.aiResult?.let { result ->
+                    updateState {
+                        it.copy(
+                            productName = result.name.ifBlank { it.productName },
+                            salts = result.salts.ifBlank { it.salts },
+                            prodDNormName = result.dose.ifBlank { it.prodDNormName },
+                            prodFormNormName = result.form.ifBlank { it.prodFormNormName },
+                            structure = result.composition.ifBlank { it.structure },
+                            phKinetics = result.indications.ifBlank { it.phKinetics },
+                            recommendations = result.recommendations.ifBlank { it.recommendations },
+                            storageConditions = result.storage.ifBlank { it.storageConditions },
+                            dialogState = MedicineDialogState.PictureGrid,
+                            aiResult = null
+                        )
                     }
                 }
             }

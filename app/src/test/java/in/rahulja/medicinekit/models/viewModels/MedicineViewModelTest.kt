@@ -146,4 +146,72 @@ class MedicineViewModelTest {
         assertEquals("Line1 Line2", viewModel.state.value.productName)
         collectJob.cancel()
     }
+
+    @Test
+    fun `ProcessImageWithAi with GEMINI transitions to AiReview state`() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
+        val mockContext = mockk<android.content.Context>(relaxed = true)
+        val mockUri = mockk<android.net.Uri>(relaxed = true)
+        val aiResult = `in`.rahulja.medicinekit.utils.AiMedicineResult(
+            name = "Gemini Med",
+            salts = "Gemini Salts",
+            dose = "500mg",
+            form = "Tablet"
+        )
+        
+        coEvery { AiMedicineParser.parseWithMLKit(any(), any()) } returns "Raw Text"
+        coEvery { AiMedicineParser.parseWithGemini(any(), any(), any(), any(), any()) } returns aiResult
+        
+        viewModel.onEvent(MedicineEvent.ProcessImageWithAi(
+            context = mockContext,
+            uri = mockUri,
+            useAi = true,
+            aiMode = AiMode.GEMINI,
+            apiKey = "fake-key"
+        ))
+        
+        advanceUntilIdle()
+        
+        assertEquals(MedicineDialogState.AiReview, viewModel.state.value.dialogState)
+        assertEquals(aiResult, viewModel.state.value.aiResult)
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `ApplyAiResult maps fields and clears aiResult`() = runTest {
+        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
+        val aiResult = `in`.rahulja.medicinekit.utils.AiMedicineResult(
+            name = "Gemini Med",
+            salts = "Gemini Salts",
+            dose = "500mg",
+            form = "Tablet",
+            indications = "Headache",
+            recommendations = "Take twice a day",
+            storage = "Cool dry place"
+        )
+        
+        // Directly set aiResult in state for testing ApplyAiResult
+        viewModel.onEvent(MedicineEvent.ProcessImageWithAi(
+            mockk(), mockk(), true, AiMode.GEMINI, "key"
+        ))
+        coEvery { AiMedicineParser.parseWithMLKit(any(), any()) } returns "test"
+        coEvery { AiMedicineParser.parseWithGemini(any(), any(), any(), any(), any()) } returns aiResult
+        advanceUntilIdle()
+        
+        // Now apply it
+        viewModel.onEvent(MedicineEvent.ApplyAiResult)
+        advanceUntilIdle()
+        
+        val state = viewModel.state.value
+        assertEquals("Gemini Med", state.productName)
+        assertEquals("Gemini Salts", state.salts)
+        assertEquals("500mg", state.prodDNormName)
+        assertEquals("Tablet", state.prodFormNormName)
+        assertEquals("Headache", state.phKinetics)
+        assertEquals("Take twice a day", state.recommendations)
+        assertEquals("Cool dry place", state.storageConditions)
+        assertEquals(null, state.aiResult)
+        assertEquals(MedicineDialogState.PictureGrid, state.dialogState)
+        collectJob.cancel()
+    }
 }

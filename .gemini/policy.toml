@@ -1,0 +1,36 @@
+# Gemini CLI Policy Configuration
+
+# Trust common safe commands to bypass confirmation
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "git status"
+decision = "trust"
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "git diff"
+decision = "trust"
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "ls"
+decision = "trust"
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "./gradlew tasks"
+decision = "trust"
+
+# Deny dangerous commands
+[[rule]]
+toolName = "run_shell_command"
+commandPattern = "rm -rf /"
+decision = "deny"
+denyMessage = "Safety first! Root deletion is blocked."
+
+# Restrict specialized agents
+[[rule]]
+subagent = "git-helper"
+toolName = "run_shell_command"
+commandPrefix = "git"
+decision = "trust"

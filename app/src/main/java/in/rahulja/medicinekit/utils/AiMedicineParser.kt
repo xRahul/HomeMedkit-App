@@ -56,8 +56,13 @@ object AiMedicineParser {
                 Extract medicine information and format it as a strictly valid JSON object with these exact keys:
                 "name", "salts" (active ingredients), "dose", "form" (release form like tablet, syrup, etc.),
                 "composition", "indications", "recommendations", "storage".
-                If a value is not found or unknown, leave it as an empty string "".
-                Please also search your knowledge base to fill out the details (especially for common medicines, specifically those from India, like crossing with 1mg info) using the extracted text or image as a starting point.
+                
+                CRITICAL INSTRUCTION:
+                1. First, identify the medicine from the image/text.
+                2. Second, SEARCH YOUR KNOWLEDGE BASE for the full details of this medicine (especially if it is a common medicine from India).
+                3. Third, even if some information is not clearly visible on the packaging (like full indications or storage conditions), provide the standard information from your knowledge base for this specific medicine.
+                4. Fill all fields as accurately as possible. Use empty string "" only if the medicine itself is unknown.
+                
                 Respond ONLY with the raw JSON object, no markdown formatting blocks, no extra text.
             """.trimIndent()
 
@@ -80,7 +85,7 @@ object AiMedicineParser {
             val jsonString = response.text?.replace("```json", "")?.replace("```", "")?.trim() ?: return null
             val json = Json { ignoreUnknownKeys = true }
             json.decodeFromString<AiMedicineResult>(jsonString)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             e.printStackTrace()
             null
         }
@@ -111,7 +116,7 @@ object AiMedicineParser {
             } else {
                 bitmap
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             e.printStackTrace()
             null
         }

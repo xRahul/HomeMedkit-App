@@ -342,4 +342,7 @@
     <string name="preference_ai_mode_gemini">Gemini (Cloud)</string>
     <string name="preference_gemini_api_key">Gemini API Key</string>
     <string name="text_medicine_salts">Salts (Active Ingredients)</string>
+    <string name="text_ai_review_title" translatable="false">AI Parsing Result</string>
+    <string name="text_ai_review_description" translatable="false">Review the information extracted by AI. You can confirm to auto-fill the form.</string>
+    <string name="text_apply" translatable="false">Apply</string>
 </resources>
