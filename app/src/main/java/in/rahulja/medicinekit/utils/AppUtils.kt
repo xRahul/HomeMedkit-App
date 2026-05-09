@@ -6,7 +6,6 @@ import androidx.compose.foundation.text.input.TextFieldBuffer
 import androidx.compose.foundation.text.input.delete
 import `in`.rahulja.medicinekit.data.dto.Image
 import `in`.rahulja.medicinekit.network.Network
-import `in`.rahulja.medicinekit.utils.di.Preferences
 import `in`.rahulja.medicinekit.utils.enums.DrugType
 import java.io.File
 
@@ -14,9 +13,10 @@ suspend fun getMedicineImages(
     medicineId: Long,
     form: String,
     directory: File,
-    urls: List<String>?
+    urls: List<String>?,
+    preferences: AppPreferences
 ): List<Image> {
-    val imageList = if (Preferences.imageFetch && !urls.isNullOrEmpty()) {
+    val imageList = if (preferences.imageFetch && !urls.isNullOrEmpty()) {
         Network.getImage(directory, urls)
     } else {
         emptyList()

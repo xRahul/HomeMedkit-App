@@ -6,6 +6,17 @@ import android.content.Context
 import android.webkit.MimeTypeMap
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import `in`.rahulja.medicinekit.data.MedicineDatabase
+import `in`.rahulja.medicinekit.network.Network
+import `in`.rahulja.medicinekit.network.models.auth.BackupData
+import `in`.rahulja.medicinekit.network.models.auth.FileMetadata
+import `in`.rahulja.medicinekit.network.models.auth.FullBackupData
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import `in`.rahulja.medicinekit.utils.MimeType
+import `in`.rahulja.medicinekit.utils.SYNC_MODE
+import `in`.rahulja.medicinekit.utils.enums.SyncMode
+import `in`.rahulja.medicinekit.utils.extensions.md5
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
@@ -18,23 +29,11 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
-import `in`.rahulja.medicinekit.data.MedicineDatabase
-import `in`.rahulja.medicinekit.data.dto.Medicine
-import `in`.rahulja.medicinekit.network.GoogleDriveApi
-import `in`.rahulja.medicinekit.network.Network
-import `in`.rahulja.medicinekit.network.models.auth.BackupData
-import `in`.rahulja.medicinekit.network.models.auth.FileMetadata
-import `in`.rahulja.medicinekit.utils.MimeType
-import `in`.rahulja.medicinekit.utils.Preferences
-import `in`.rahulja.medicinekit.utils.SYNC_MODE
-import `in`.rahulja.medicinekit.utils.enums.SyncMode
-import `in`.rahulja.medicinekit.utils.extensions.md5
-import java.io.File
 
 class SyncWorker(
     val context: Context,
     params: WorkerParameters,
-    private val preferences: Preferences
+    private val preferences: AppPreferences,
 ) : CoroutineWorker(context, params) {
 
     private val isYandex = preferences.authIsYandex
@@ -43,10 +42,6 @@ class SyncWorker(
         val mode = when (val name = inputData.getString(SYNC_MODE)) {
             null -> SyncMode.AUTO
             else -> SyncMode.valueOf(name)
-        }
-
-        if (!isYandex) {
-            GoogleDriveApi.init(context)
         }
 
         return@withContext try {
@@ -93,7 +88,8 @@ class SyncWorker(
         if (isYandex) {
             if (!Network.Yandex.checkConnection()) throw Exception()
         } else {
-            if (!GoogleDriveApi.isReady()) throw Exception()
+            // Google Drive sync disabled
+            throw Exception()
         }
 
         var imagesSizeBytes = 0L
@@ -186,11 +182,19 @@ class SyncWorker(
 
         if (downloadSuccess) {
             val database = MedicineDatabase.getInstance(context)
+            val dao = database.appDAO()
             try {
                 tempFile.inputStream().use { inputStream ->
-                    val backup = Json.decodeFromStream<BackupData<List<Medicine>>>(inputStream)
+                    val backup = Json.decodeFromStream<BackupData<FullBackupData>>(inputStream)
                     if (backup.version <= database.openHelper.readableDatabase.version) {
-                        database.medicineDAO().syncMedicines(backup.data)
+                        val data = backup.data
+                        dao.syncMedicines(data.medicines)
+                        dao.syncKits(data.kits, data.medicineKits)
+                        dao.syncIntakes(data.intakes, data.intakeTimes)
+                        dao.syncAlarms(data.alarms)
+                        dao.syncIntakeDays(data.intakeDays)
+                        dao.syncTaken(data.taken)
+                        dao.syncImages(data.images)
                     }
                 }
             } finally {
@@ -208,11 +212,34 @@ class SyncWorker(
 
     private suspend fun serializeData(): File {
         val database = MedicineDatabase.getInstance(context)
+        val dao = database.appDAO()
         val file = File(context.cacheDir, "medicines.json")
-        val medicines = database.medicineDAO().getAll()
+
+        val medicines = dao.getAllMedicines()
+        val intakes = dao.getAllIntakes()
+        val kits = dao.getAllKits()
+        val medicineKits = dao.getAllMedicineKits()
+        val intakeTimes = dao.getAllIntakeTimes()
+        val images = dao.getAllImages()
+        val alarms = dao.getAllAlarms()
+        val intakeDays = dao.getAllIntakeDays()
+        val taken = dao.getAllTaken()
+
+        val fullBackupData = FullBackupData(
+            medicines = medicines,
+            intakes = intakes,
+            kits = kits,
+            medicineKits = medicineKits,
+            intakeTimes = intakeTimes,
+            images = images,
+            alarms = alarms,
+            intakeDays = intakeDays,
+            taken = taken,
+        )
+
         val backupData = BackupData(
             version = database.openHelper.readableDatabase.version,
-            data = medicines
+            data = fullBackupData,
         )
         file.outputStream().buffered().use { outputStream ->
             Json.encodeToStream(backupData, outputStream)

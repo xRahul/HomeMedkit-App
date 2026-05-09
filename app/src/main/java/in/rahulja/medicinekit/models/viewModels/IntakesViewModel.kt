@@ -20,10 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import `in`.rahulja.medicinekit.R
-import `in`.rahulja.medicinekit.data.dao.AlarmDAO
-import `in`.rahulja.medicinekit.data.dao.IntakeDAO
-import `in`.rahulja.medicinekit.data.dao.MedicineDAO
-import `in`.rahulja.medicinekit.data.dao.TakenDAO
+import `in`.rahulja.medicinekit.data.dao.AppDAO
 import `in`.rahulja.medicinekit.data.dto.IntakeTaken
 import `in`.rahulja.medicinekit.data.model.IntakeList
 import `in`.rahulja.medicinekit.data.model.IntakeModel
@@ -50,12 +47,9 @@ import java.time.LocalDate
 import kotlin.math.abs
 
 class IntakesViewModel(
-    private val intakeDAO: IntakeDAO,
-    private val medicineDAO: MedicineDAO,
-    private val takenDAO: TakenDAO,
-    private val alarmDAO: AlarmDAO,
+    private val dao: AppDAO,
     private val alarmManager: AlarmSetter
-) : BaseViewModel<IntakesState, IntakesEvent>() {
+) : BaseViewModel<IntakesState, IntakesEvent>(IntakesState()) {
 
     private val currentYear by lazy { LocalDate.now().year }
 
@@ -63,17 +57,17 @@ class IntakesViewModel(
     val takenManager by lazy(::TakenManager)
     val newTakenManager by lazy(::NewTakenManager)
 
-    val medicines = medicineDAO.getFlow(MedicinesQueryBuilder.selectAll)
+    val medicines = dao.getMedicineFlow(MedicinesQueryBuilder.selectAll)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     val intakes = state.map { it.search }.distinctUntilChanged().flatMapLatest { search ->
-        intakeDAO.getFlow(search)
+        dao.getIntakesFlow(search)
             .map { list -> list.map(IntakeList::toIntake) }
             .flowOn(Dispatchers.Default)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     val schedule = state.map { it.search }.distinctUntilChanged().flatMapLatest { search ->
-        alarmDAO.getFlow(search)
+        dao.getAlarmsFlow(search)
             .map { list ->
                 list.groupBy { Formatter.getDateTime(it.trigger).toLocalDate().toEpochDay() }
                     .entries
@@ -84,7 +78,7 @@ class IntakesViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     val taken = state.map { it.search }.distinctUntilChanged().flatMapLatest { search ->
-        takenDAO.getFlow(search)
+        dao.getTakenFlow(search)
             .map { list ->
                 list.groupBy { Formatter.getDateTime(it.trigger).toLocalDate().toEpochDay() }
                     .entries
@@ -94,9 +88,8 @@ class IntakesViewModel(
             .flowOn(Dispatchers.Default)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
-    override fun initState() = IntakesState()
 
-    override fun loadData() = Unit
+    internal override fun loadData() = Unit
 
     override fun onEvent(event: IntakesEvent) {
         when (event) {
@@ -162,9 +155,9 @@ class IntakesViewModel(
         override fun onEvent(event: Unit) = Unit
 
         internal suspend fun getScheduled(item: IntakeModel) {
-            val alarm = alarmDAO.getById(item.alarmId) ?: return
+            val alarm = dao.getAlarmById(item.alarmId) ?: return
             val date = Formatter.getDateTime(alarm.trigger).toLocalDate().format(Formatter.FORMAT_DD_MM)
-            val inStock = intakeDAO.getById(alarm.intakeId)?.let {
+            val inStock = dao.getIntakeById(alarm.intakeId)?.let {
                 it.medicine.prodAmount >= alarm.amount
             } ?: false
 
@@ -182,13 +175,13 @@ class IntakesViewModel(
 
         fun scheduleToTaken() {
             viewModelScope.launch {
-                val alarm = alarmDAO.getById(currentState.alarmId) ?: return@launch
-                val intake = intakeDAO.getById(alarm.intakeId) ?: return@launch
-                val medicine = medicineDAO.getById(intake.medicineId) ?: return@launch
-                val image = medicineDAO.getMedicineImage(medicine.id).orEmpty()
+                val alarm = dao.getAlarmById(currentState.alarmId) ?: return@launch
+                val intake = dao.getIntakeById(alarm.intakeId) ?: return@launch
+                val medicine = dao.getMedicineById(intake.medicineId) ?: return@launch
+                val image = dao.getMedicineImage(medicine.id).orEmpty()
 
-                alarmDAO.delete(alarm)
-                takenDAO.insert(
+                dao.deleteAlarm(alarm)
+                dao.insertTaken(
                     IntakeTaken(
                         medicineId = medicine.id,
                         intakeId = alarm.intakeId,
@@ -205,7 +198,7 @@ class IntakesViewModel(
                     )
                 )
 
-                medicineDAO.intakeMedicine(medicine.id, alarm.amount)
+                dao.intakeMedicine(medicine.id, alarm.amount)
 
                 alarmManager.setPreAlarm(intake.intakeId)
             }
@@ -222,7 +215,7 @@ class IntakesViewModel(
 
             TakenEvent.Delete -> {
                 viewModelScope.launch {
-                    takenDAO.delete(IntakeTaken(currentState.takenId))
+                    dao.deleteTaken(IntakeTaken(currentState.takenId))
                 }
 
                 closeDialog()
@@ -271,7 +264,7 @@ class IntakesViewModel(
         }
 
         internal suspend fun getTaken(takenId: Long) {
-            val taken = takenDAO.getById(takenId)
+            val taken = dao.getTakenById(takenId)
             val state = withContext(Dispatchers.Main) {
                 taken?.toTakenState().orDefault()
             }
@@ -290,12 +283,12 @@ class IntakesViewModel(
             }
 
             viewModelScope.launch {
-                takenDAO.setTaken(takenId, takenNow, if (takenNow) currentState.inFact else 0L)
-                takenDAO.setNotified(takenId)
+                dao.setTaken(takenId, takenNow, if (takenNow) currentState.inFact else 0L)
+                dao.setNotified(takenId)
 
                 currentState.medicine?.let { medicine ->
-                    with(medicineDAO) {
-                        getById(medicine.id)?.let {
+                    with(dao) {
+                        getMedicineById(medicine.id)?.let {
                             when {
                                 takenNow && !takenOld -> intakeMedicine(it.id, currentState.amount)
                                 !takenNow && takenOld -> untakeMedicine(it.id, currentState.amount)
@@ -337,8 +330,8 @@ class IntakesViewModel(
                     )
 
                     viewModelScope.launch {
-                        takenDAO.insert(taken)
-                        medicineDAO.intakeMedicine(taken.medicineId, taken.amount)
+                        dao.insertTaken(taken)
+                        dao.intakeMedicine(taken.medicineId, taken.amount)
                     }
 
                     closeDialog()
@@ -356,7 +349,7 @@ class IntakesViewModel(
                     }
 
                     viewModelScope.launch {
-                        takenDAO.getSimilarAmount(event.medicine.id)?.let { amount ->
+                        dao.getSimilarAmount(event.medicine.id)?.let { amount ->
                             updateState {
                                 it.copy(amount = Formatter.decimalFormat(amount))
                             }

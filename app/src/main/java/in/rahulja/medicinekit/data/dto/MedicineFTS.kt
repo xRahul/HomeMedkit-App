@@ -3,7 +3,9 @@ package `in`.rahulja.medicinekit.data.dto
 import androidx.room.Entity
 import androidx.room.Fts4
 import androidx.room.FtsOptions
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(tableName = "medicines_fts")
 @Fts4(
     tokenizer = FtsOptions.TOKENIZER_UNICODE61,

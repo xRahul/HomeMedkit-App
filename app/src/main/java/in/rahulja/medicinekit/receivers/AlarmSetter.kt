@@ -13,7 +13,7 @@ import `in`.rahulja.medicinekit.data.MedicineDatabase
 import `in`.rahulja.medicinekit.data.dto.Alarm
 import `in`.rahulja.medicinekit.utils.ALARM_ID
 import `in`.rahulja.medicinekit.utils.Formatter
-import `in`.rahulja.medicinekit.utils.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.extensions.canScheduleExactAlarms
 import java.time.LocalTime
 import java.time.ZonedDateTime
@@ -35,7 +35,7 @@ class AlarmSetter private constructor(private val context: Context) {
 
         with(manager) {
             if (context.canScheduleExactAlarms()) {
-                val preferences = Preferences.getInstance(context)
+                val preferences = AppPreferences.getInstance(context)
 
                 if (preferences.useAlarmClock) {
                     setAlarmClock(AlarmManager.AlarmClockInfo(trigger, pending), pending)
@@ -49,7 +49,7 @@ class AlarmSetter private constructor(private val context: Context) {
     }
 
     suspend fun setPreAlarm(intakeId: Long) {
-        val alarm = database.alarmDAO().getNextByIntakeId(intakeId) ?: return
+        val alarm = database.appDAO().getNextAlarmByIntakeId(intakeId) ?: return
         val preTrigger = alarm.trigger - 1800000L
 
         val pending = getBroadcast(
@@ -61,7 +61,7 @@ class AlarmSetter private constructor(private val context: Context) {
 
         with(manager) {
             if (context.canScheduleExactAlarms()) {
-                val preferences = Preferences.getInstance(context)
+                val preferences = AppPreferences.getInstance(context)
 
                 if (preferences.useAlarmClock) {
                     setAlarmClock(AlarmManager.AlarmClockInfo(preTrigger, pending), pending)
@@ -75,7 +75,7 @@ class AlarmSetter private constructor(private val context: Context) {
     }
 
     suspend fun removeAlarm(intakeId: Long) {
-        val nextAlarm = database.alarmDAO().getNextByIntakeId(intakeId) ?: return
+        val nextAlarm = database.appDAO().getNextAlarmByIntakeId(intakeId) ?: return
 
         val pendingA = getBroadcast(
             context,
@@ -97,11 +97,11 @@ class AlarmSetter private constructor(private val context: Context) {
         }
     }
 
-    suspend fun resetAll() = database.alarmDAO().getExpired(System.currentTimeMillis())
+    suspend fun resetAll() = database.appDAO().getExpiredAlarms(System.currentTimeMillis())
         .mapNotNull(Alarm::intakeId)
         .forEach { setPreAlarm(it) }
 
-    suspend fun cancelAll() = database.alarmDAO().getAll().forEach {
+    suspend fun cancelAll() = database.appDAO().getAllAlarms().forEach {
         with(manager) {
             cancel(
                 getBroadcast(
@@ -139,7 +139,7 @@ class AlarmSetter private constructor(private val context: Context) {
                 val nextTime = nextNoon.toInstant().toEpochMilli()
 
                 if (context.canScheduleExactAlarms()) {
-                    val preferences = Preferences.getInstance(context)
+                    val preferences = AppPreferences.getInstance(context)
 
                     if (preferences.useAlarmClock) {
                         setAlarmClock(AlarmManager.AlarmClockInfo(nextTime, broadcast), broadcast)

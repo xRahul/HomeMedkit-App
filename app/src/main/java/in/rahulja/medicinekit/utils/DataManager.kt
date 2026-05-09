@@ -19,7 +19,8 @@ import kotlinx.coroutines.withContext
 import `in`.rahulja.medicinekit.R
 import `in`.rahulja.medicinekit.data.MedicineDatabase
 import `in`.rahulja.medicinekit.receivers.AlarmSetter
-import `in`.rahulja.medicinekit.utils.di.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import org.koin.compose.koinInject
 import `in`.rahulja.medicinekit.utils.extensions.restartApplication
 import `in`.rahulja.medicinekit.utils.extensions.showToast
 import java.io.File
@@ -254,7 +255,7 @@ object DataManager {
 
     suspend fun clearCache(context: Context) = withContext(Dispatchers.IO) {
         val mimeTypeMap = MimeTypeMap.getSingleton()
-        val images = MedicineDatabase.getInstance(context).medicineDAO().getAllImageNames().toSet()
+        val images = MedicineDatabase.getInstance(context).appDAO().getAllImageNames().toSet()
 
         coroutineScope {
             launch { context.cacheDir?.deleteRecursively() }
@@ -274,12 +275,13 @@ object DataManager {
 @Composable
 fun launcherExportAll(actionHandler: ActionHandler): ActionExport {
     val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
     val launcher = rememberContractLauncher(
         contract = CreateDocument(MimeType.ZIP),
         onResult = rememberDataAction(actionHandler) { uri ->
             DataManager.exportAll(context, uri).also { isSuccess ->
                 if (isSuccess) {
-                    Preferences.addImportedKey()
+                    preferences.addImportedKey()
                     context.restartApplication()
                 }
             }
@@ -297,12 +299,13 @@ fun launcherExportAll(actionHandler: ActionHandler): ActionExport {
 @Composable
 fun launcherImportAll(actionHandler: ActionHandler): ActionImport<String> {
     val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
     val launcher = rememberContractLauncher(
         contract = ActivityResultContracts.GetContent(),
         onResult = rememberDataAction(actionHandler) { uri ->
             DataManager.importAll(context, uri).also { isSuccess ->
                 if (isSuccess) {
-                    Preferences.addImportedKey()
+                    preferences.addImportedKey()
                     context.restartApplication()
                 }
             }
@@ -356,12 +359,13 @@ fun launcherImportImages(actionHandler: ActionHandler): ActionImport<String> {
 @Composable
 fun launcherExportDatabase(actionHandler: ActionHandler): ActionExport {
     val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
     val launcher = rememberContractLauncher(
         contract = CreateDocument(MimeType.Database.DB_SQLITE_VND),
         onResult = rememberDataAction(actionHandler) { uri ->
             DataManager.exportDatabase(context, uri).also { isSuccess ->
                 if (isSuccess) {
-                    Preferences.addImportedKey()
+                    preferences.addImportedKey()
                     context.restartApplication()
                 }
             }
@@ -379,12 +383,13 @@ fun launcherExportDatabase(actionHandler: ActionHandler): ActionExport {
 @Composable
 fun launcherImportDatabase(actionHandler: ActionHandler): ActionImport<Array<String>> {
     val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
     val launcher = rememberContractLauncher(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = rememberDataAction(actionHandler) { uri ->
             DataManager.importDatabase(context, uri).also { isSuccess ->
                 if (isSuccess) {
-                    Preferences.addImportedKey()
+                    preferences.addImportedKey()
                     context.restartApplication()
                 }
             }

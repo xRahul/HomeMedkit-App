@@ -24,6 +24,7 @@ import `in`.rahulja.medicinekit.dialogs.DatePicker
 import `in`.rahulja.medicinekit.dialogs.DateRangePicker
 import `in`.rahulja.medicinekit.dialogs.TimePickerDialog
 import `in`.rahulja.medicinekit.models.events.IntakeEvent
+import `in`.rahulja.medicinekit.models.states.IntakeState
 import `in`.rahulja.medicinekit.models.viewModels.IntakeViewModel
 import `in`.rahulja.medicinekit.ui.elements.DialogDelete
 import `in`.rahulja.medicinekit.ui.elements.NavigationIcon
@@ -105,7 +106,7 @@ fun IntakeScreen(model: IntakeViewModel, onBack: () -> Unit) {
 }
 
 @Composable
-private fun IntakeDialogs(state: `in`.rahulja.medicinekit.models.states.IntakeState, model: IntakeViewModel, onBack: () -> Unit) {
+private fun IntakeDialogs(state: IntakeState, model: IntakeViewModel, onBack: () -> Unit) {
     when {
         state.showDialogDescription -> DialogDescription(state, model::onEvent)
         state.showDialogDataLoss -> DialogDataLoss(model::onEvent, onBack)

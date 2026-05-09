@@ -4,7 +4,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import java.time.DayOfWeek
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(
     tableName = "intake_days",
     primaryKeys = ["intakeId", "day"],

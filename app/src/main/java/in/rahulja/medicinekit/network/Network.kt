@@ -55,11 +55,16 @@ import `in`.rahulja.medicinekit.utils.AUTH_URL_YANDEX
 import `in`.rahulja.medicinekit.utils.CLIENT_ID_YANDEX
 import `in`.rahulja.medicinekit.utils.CLIENT_SECRET_YANDEX
 import `in`.rahulja.medicinekit.utils.TOKEN_URL_YANDEX
-import `in`.rahulja.medicinekit.utils.di.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.File
 import kotlin.io.encoding.Base64
 
-object Network {
+object Network : KoinComponent {
+
+    internal val preferences: AppPreferences by inject()
+
     private val defaultClient = HttpClient(Android) {
         engine {
             dispatcher = Dispatchers.IO
@@ -91,7 +96,7 @@ object Network {
                 }
 
                 loadTokens {
-                    Preferences.token?.let {
+                    preferences.token?.let {
                         BearerTokens(it.accessToken, it.refreshToken)
                     }
                 }
@@ -172,7 +177,7 @@ object Network {
                 val verifier = PKCEUtils.generateCodeVerifier()
                 val challenge = PKCEUtils.generateCodeChallenger(verifier)
 
-                Preferences.saveCodeVerifier(verifier)
+                preferences.saveCodeVerifier(verifier)
 
                 return AUTH_URL_YANDEX.toUri()
                     .buildUpon()
@@ -185,7 +190,7 @@ object Network {
             }
 
         suspend fun getToken(code: String): Token? {
-            val verifier = Preferences.codeVerifier ?: return null
+            val verifier = preferences.codeVerifier ?: return null
             val encoded = Base64.encode("$CLIENT_ID_YANDEX:$CLIENT_SECRET_YANDEX".encodeToByteArray())
 
             return try {
@@ -201,12 +206,12 @@ object Network {
             } catch (_: Exception) {
                 null
             } finally {
-                Preferences.removeCodeVerifier()
+                preferences.removeCodeVerifier()
             }
         }
 
         suspend fun refreshToken(refreshToken: String, builder: HttpRequestBuilder.() -> Unit): Token? = mutex.withLock {
-            with(Preferences.token) {
+            with(preferences.token) {
                 if (this != null && this.refreshToken != refreshToken) {
                     return@withLock this
                 }
@@ -230,10 +235,10 @@ object Network {
 
                     if (response.status.isSuccess()) {
                         val newToken = response.body<Token>()
-                        Preferences.saveToken(newToken)
+                        preferences.saveToken(newToken)
                         return@withLock newToken
                     } else if (response.status == HttpStatusCode.BadRequest || response.status == HttpStatusCode.Unauthorized) {
-                        Preferences.saveToken(Token.empty)
+                        preferences.saveToken(Token.empty)
                         return@withLock null
                     }
                 } catch (e: Exception) {

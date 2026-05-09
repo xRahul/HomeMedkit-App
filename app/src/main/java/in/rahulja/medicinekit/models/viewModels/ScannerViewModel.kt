@@ -7,21 +7,22 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import `in`.rahulja.medicinekit.data.dao.MedicineDAO
+import `in`.rahulja.medicinekit.data.dao.AppDAO
 import `in`.rahulja.medicinekit.models.events.Response
 import `in`.rahulja.medicinekit.models.events.ScannerEvent
 import `in`.rahulja.medicinekit.models.states.ScannerState
 import `in`.rahulja.medicinekit.network.Network
 import `in`.rahulja.medicinekit.utils.extensions.asMedicine
 import `in`.rahulja.medicinekit.utils.getMedicineImages
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import java.io.File
 
 class ScannerViewModel(
-    private val dao: MedicineDAO
-) : BaseViewModel<ScannerState, Unit>() {
-    override fun initState() = ScannerState.Default
+    private val dao: AppDAO,
+    private val preferences: AppPreferences
+) : BaseViewModel<ScannerState, Unit>(ScannerState.Default) {
 
-    override fun loadData() = Unit
+    internal override fun loadData() = Unit
 
     override fun onEvent(event: Unit) = Unit
 
@@ -56,7 +57,7 @@ class ScannerViewModel(
                     awaitCancellation()
                 }
 
-                val duplicateId = dao.findDuplicate(normalizedCode)
+                val duplicateId = dao.findDuplicateMedicine(normalizedCode)
                 if (duplicateId != null) {
                     _event.send(ScannerEvent.Navigate(duplicateId, null, true))
                     awaitCancellation()
@@ -71,12 +72,13 @@ class ScannerViewModel(
                             if (model.category == "drugs" || model.category == "bio") {
                                 val medicine = model.asMedicine().copy(cis = code)
 
-                                val id = dao.insert(medicine)
+                                val id = dao.insertMedicine(medicine)
                                 val images = getMedicineImages(
                                     medicineId = id,
                                     form = medicine.prodFormNormName,
                                     directory = dir,
-                                    urls = response.model.imageUrls
+                                    urls = response.model.imageUrls,
+                                    preferences = preferences
                                 )
 
                                 dao.updateImages(images)
@@ -87,6 +89,7 @@ class ScannerViewModel(
                                 _event.send(ScannerEvent.ShowSnackbar.IncorrectCode)
                             }
                         }
+
 
                         is Response.Error.NetworkError -> {
                             updateState { ScannerState.ShowDialog(response.code) }

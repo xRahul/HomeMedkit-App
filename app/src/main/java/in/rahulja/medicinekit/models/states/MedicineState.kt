@@ -2,6 +2,7 @@ package `in`.rahulja.medicinekit.models.states
 
 import androidx.annotation.StringRes
 import `in`.rahulja.medicinekit.data.dto.Kit
+import `in`.rahulja.medicinekit.utils.AiMedicineResult
 import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.enums.DoseType
 import `in`.rahulja.medicinekit.utils.enums.ImageEditing
@@ -37,6 +38,6 @@ data class MedicineState(
     val technical: TechnicalState = TechnicalState(),
     val imageEditing: ImageEditing = ImageEditing.ADDING,
     val isOpened: Boolean = false,
-    val aiResult: `in`.rahulja.medicinekit.utils.AiMedicineResult? = null,
+    val aiResult: AiMedicineResult? = null,
     val dialogState: MedicineDialogState? = null
 )

@@ -21,7 +21,7 @@ class ExpirationReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) = goAsync {
         val inMonth = System.currentTimeMillis() + 30 * 86400000L // millis in day
 
-        database.medicineDAO().getExpiredSoon(inMonth).forEach {
+        database.appDAO().getExpiredSoon(inMonth).forEach {
             NotificationManagerCompat.from(context).safeNotify(
                 context = context,
                 code = it.id.toInt(),

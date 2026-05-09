@@ -65,7 +65,8 @@ import `in`.rahulja.medicinekit.ui.navigation.Screen
 import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.camera.CameraConfig
 import `in`.rahulja.medicinekit.utils.camera.rememberCameraConfig
-import `in`.rahulja.medicinekit.utils.di.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import org.koin.compose.koinInject
 import `in`.rahulja.medicinekit.utils.extensions.vibrate
 import `in`.rahulja.medicinekit.utils.permissions.PermissionState
 import `in`.rahulja.medicinekit.utils.permissions.rememberPermissionState
@@ -74,6 +75,7 @@ import `in`.rahulja.medicinekit.utils.permissions.rememberPermissionState
 fun ScannerScreen(model: ScannerViewModel = koinViewModel(), onBack: () -> Unit, onNavigate: (Screen) -> Unit) {
     val resources = LocalResources.current
     val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
     val filesDir = context.filesDir
 
     val state by model.state.collectAsStateWithLifecycle()
@@ -93,7 +95,7 @@ fun ScannerScreen(model: ScannerViewModel = koinViewModel(), onBack: () -> Unit,
         model.event.collectLatest { result ->
             when (result) {
                 is ScannerEvent.ShowSnackbar -> {
-                    if (Preferences.useVibrationScan) {
+                    if (preferences.useVibrationScan) {
                         context.vibrate(200L)
                     }
 
@@ -104,7 +106,7 @@ fun ScannerScreen(model: ScannerViewModel = koinViewModel(), onBack: () -> Unit,
                 }
 
                 is ScannerEvent.Navigate -> {
-                    if (Preferences.useVibrationScan) {
+                    if (preferences.useVibrationScan) {
                         context.vibrate(150L)
                     }
 

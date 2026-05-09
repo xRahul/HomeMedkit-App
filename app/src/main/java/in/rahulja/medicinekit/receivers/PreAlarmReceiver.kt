@@ -24,15 +24,15 @@ class PreAlarmReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) = goAsync {
         val alarmId = intent.getLongExtra(ALARM_ID, 0L)
 
-        val alarm = database.alarmDAO().getById(alarmId) ?: return@goAsync
-        val intake = database.intakeDAO().getById(alarm.intakeId) ?: return@goAsync
-        val medicine = database.medicineDAO().getById(intake.medicineId) ?: return@goAsync
-        val image = database.medicineDAO().getMedicineImage(medicine.id).orEmpty()
+        val alarm = database.appDAO().getAlarmById(alarmId) ?: return@goAsync
+        val intake = database.appDAO().getIntakeById(alarm.intakeId) ?: return@goAsync
+        val medicine = database.appDAO().getMedicineById(intake.medicineId) ?: return@goAsync
+        val image = database.appDAO().getMedicineImage(medicine.id).orEmpty()
 
-        database.alarmDAO().delete(alarm)
+        database.appDAO().deleteAlarm(alarm)
 
-        val takenId = database.takenDAO().insert(
-            item = IntakeTaken(
+        val takenId = database.appDAO().insertTaken(
+            taken = IntakeTaken(
                 medicineId = medicine.id,
                 intakeId = alarm.intakeId,
                 alarmId = alarmId,

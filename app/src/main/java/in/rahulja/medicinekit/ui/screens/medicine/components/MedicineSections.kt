@@ -13,11 +13,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -25,15 +29,17 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import `in`.rahulja.medicinekit.R
-import `in`.rahulja.medicinekit.data.dto.Kit
 import `in`.rahulja.medicinekit.models.events.MedicineEvent
 import `in`.rahulja.medicinekit.models.states.MedicineDialogState
 import `in`.rahulja.medicinekit.models.states.MedicineState
 import `in`.rahulja.medicinekit.ui.elements.IconButton
 import `in`.rahulja.medicinekit.ui.elements.VectorIcon
+import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.DecimalAmountInputTransformation
 import `in`.rahulja.medicinekit.utils.DecimalAmountOutputTransformation
 import `in`.rahulja.medicinekit.utils.Formatter
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import org.koin.compose.koinInject
 
 @Composable
 fun MedicineHeaderSection(state: MedicineState, event: (MedicineEvent) -> Unit) {
@@ -115,6 +121,7 @@ fun MedicineGeneralInfoSection(state: MedicineState, event: (MedicineEvent) -> U
 
 @Composable
 fun MedicineAdditionalInfoSection(state: MedicineState, event: (MedicineEvent) -> Unit) {
+    val preferences: AppPreferences = koinInject()
     Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
         if (state.adding || state.editing || state.salts.isNotEmpty()) {
             InfoTextField(
@@ -145,7 +152,8 @@ fun MedicineAdditionalInfoSection(state: MedicineState, event: (MedicineEvent) -
                 onValueChange = { event(MedicineEvent.SetPhKinetics(it)) },
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
-                    keyboardType = KeyboardType.Text
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Default
                 )
             )
         }
@@ -197,19 +205,18 @@ fun MedicineAdditionalInfoSection(state: MedicineState, event: (MedicineEvent) -
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     if (state.images.isNotEmpty()) {
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        androidx.compose.material3.OutlinedButton(
-                            onClick = { event(MedicineEvent.ExtractTextFromImages(context)) },
+                        OutlinedButton(
+                            onClick = { event(MedicineEvent.ExtractTextFromImages) },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(stringResource(R.string.action_extract_text))
                         }
                     }
                     if (state.extractedImagesText.isNotEmpty()) {
-                        val apiKey = `in`.rahulja.medicinekit.utils.di.Preferences.geminiApiKey
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        androidx.compose.material3.Button(
-                            onClick = { event(MedicineEvent.AnalyzeTextWithGemini(context, apiKey)) },
+                        val apiKey = preferences.geminiApiKey
+                        val context = LocalContext.current
+                        Button(
+                            onClick = { event(MedicineEvent.AnalyzeTextWithGemini(apiKey)) },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(stringResource(R.string.action_format_with_gemini))

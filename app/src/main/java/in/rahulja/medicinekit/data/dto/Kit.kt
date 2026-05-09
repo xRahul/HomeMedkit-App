@@ -2,8 +2,10 @@ package `in`.rahulja.medicinekit.data.dto
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 import `in`.rahulja.medicinekit.utils.BLANK
 
+@Serializable
 @Entity(tableName = "kits")
 data class Kit(
     @PrimaryKey(autoGenerate = true)

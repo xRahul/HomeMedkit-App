@@ -2,9 +2,11 @@ package `in`.rahulja.medicinekit.data.dto
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.enums.DoseType
 
+@Serializable
 @Entity(tableName = "intakes_taken")
 data class IntakeTaken(
     @PrimaryKey(autoGenerate = true)

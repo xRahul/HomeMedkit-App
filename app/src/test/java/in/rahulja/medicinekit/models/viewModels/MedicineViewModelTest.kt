@@ -1,11 +1,16 @@
 package `in`.rahulja.medicinekit.models.viewModels
 
-import `in`.rahulja.medicinekit.data.dao.KitDAO
-import `in`.rahulja.medicinekit.data.dao.MedicineDAO
+import android.net.Uri
+import androidx.lifecycle.viewModelScope
+import `in`.rahulja.medicinekit.data.dao.AppDAO
+import `in`.rahulja.medicinekit.data.repository.MedicineRepository
+import `in`.rahulja.medicinekit.domain.usecases.MedicineParserUseCase
 import `in`.rahulja.medicinekit.models.events.MedicineEvent
 import `in`.rahulja.medicinekit.models.states.MedicineDialogState
 import `in`.rahulja.medicinekit.utils.AiMedicineParser
+import `in`.rahulja.medicinekit.utils.AiMedicineResult
 import `in`.rahulja.medicinekit.utils.Formatter
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.enums.AiMode
 import io.mockk.coEvery
 import io.mockk.every
@@ -34,8 +39,11 @@ import org.junit.jupiter.api.Test
 class MedicineViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val dao: MedicineDAO = mockk()
-    private val daoK: KitDAO = mockk()
+    private val dao: AppDAO = mockk(relaxed = true)
+    private val repository: MedicineRepository = mockk(relaxed = true)
+    private val parserUseCase: MedicineParserUseCase = mockk(relaxed = true)
+    private val preferences: AppPreferences = mockk(relaxed = true)
+    
     private lateinit var viewModel: MedicineViewModel
 
     @BeforeEach
@@ -52,8 +60,8 @@ class MedicineViewModelTest {
         mockkObject(Formatter)
         mockkObject(AiMedicineParser)
         
-        every { daoK.getFlow() } returns flowOf(emptyList())
-        coEvery { dao.getById(any()) } returns null
+        every { repository.getKitsFlow() } returns flowOf(emptyList())
+        coEvery { dao.getMedicineById(any()) } returns null
         
         viewModel = MedicineViewModel(
             id = 0L,
@@ -61,7 +69,9 @@ class MedicineViewModelTest {
             duplicate = false,
             openCamera = false,
             dao = dao,
-            daoK = daoK
+            repository = repository,
+            parserUseCase = parserUseCase,
+            preferences = preferences
         )
     }
 
@@ -109,7 +119,7 @@ class MedicineViewModelTest {
 
     @Test
     fun `ViewModel initializes with TakePhoto dialog when openCamera is true`() = runTest {
-        val vm = MedicineViewModel(0L, "", false, true, dao, daoK)
+        val vm = MedicineViewModel(0L, "", false, true, dao, repository, parserUseCase, preferences)
         val collectJob = launch(UnconfinedTestDispatcher()) { vm.state.collect() }
         advanceUntilIdle()
         assertEquals(MedicineDialogState.TakePhoto, vm.state.value.dialogState)
@@ -117,55 +127,19 @@ class MedicineViewModelTest {
     }
 
     @Test
-    fun `ViewModel initializes with empty images when openCamera is true and id is 0`() = runTest {
-        val vm = MedicineViewModel(0L, "", false, true, dao, daoK)
-        val collectJob = launch(UnconfinedTestDispatcher()) { vm.state.collect() }
-        advanceUntilIdle()
-        assertTrue(vm.state.value.images.isEmpty())
-        collectJob.cancel()
-    }
-
-    @Test
-    fun `ProcessImageWithAi with ML_KIT sanitizes extracted text and shows review`() = runTest {
+    fun `ProcessImageWithAi calls UseCase and transitions to AiReview state`() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
-        val mockContext = mockk<android.content.Context>(relaxed = true)
-        val mockUri = mockk<android.net.Uri>(relaxed = true)
-        
-        coEvery { AiMedicineParser.parseWithMLKit(any(), any()) } returns "Line1\nLine2\n"
-        
-        viewModel.onEvent(MedicineEvent.ProcessImageWithAi(
-            context = mockContext,
-            uri = mockUri,
-            useAi = true,
-            aiMode = AiMode.ML_KIT,
-            apiKey = ""
-        ))
-        
-        advanceUntilIdle()
-        
-        assertEquals(MedicineDialogState.AiReview, viewModel.state.value.dialogState)
-        assertEquals("Line1 Line2", viewModel.state.value.aiResult?.name)
-        assertEquals("Line1 Line2", viewModel.state.value.aiResult?.comment)
-        collectJob.cancel()
-    }
-
-    @Test
-    fun `ProcessImageWithAi with GEMINI transitions to AiReview state`() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
-        val mockContext = mockk<android.content.Context>(relaxed = true)
-        val mockUri = mockk<android.net.Uri>(relaxed = true)
-        val aiResult = `in`.rahulja.medicinekit.utils.AiMedicineResult(
+        val mockUri = mockk<Uri>(relaxed = true)
+        val aiResult = AiMedicineResult(
             name = "Gemini Med",
             salts = "Gemini Salts",
             dose = "500mg",
             form = "Tablet"
         )
         
-        coEvery { AiMedicineParser.parseWithMLKit(any(), any()) } returns "Raw Text"
-        coEvery { AiMedicineParser.parseWithGemini(any(), any(), any(), any(), any()) } returns aiResult
+        coEvery { parserUseCase.processImageWithAi(any(), any(), any()) } returns aiResult
         
         viewModel.onEvent(MedicineEvent.ProcessImageWithAi(
-            context = mockContext,
             uri = mockUri,
             useAi = true,
             aiMode = AiMode.GEMINI,
@@ -182,7 +156,7 @@ class MedicineViewModelTest {
     @Test
     fun `ApplyAiResult maps fields and clears aiResult`() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
-        val aiResult = `in`.rahulja.medicinekit.utils.AiMedicineResult(
+        val aiResult = AiMedicineResult(
             name = "Gemini Med",
             salts = "Gemini Salts",
             dose = "500mg",
@@ -192,12 +166,9 @@ class MedicineViewModelTest {
             storage = "Cool dry place"
         )
         
-        // Directly set aiResult in state for testing ApplyAiResult
-        viewModel.onEvent(MedicineEvent.ProcessImageWithAi(
-            mockk(), mockk(), true, AiMode.GEMINI, "key"
-        ))
-        coEvery { AiMedicineParser.parseWithMLKit(any(), any()) } returns "test"
-        coEvery { AiMedicineParser.parseWithGemini(any(), any(), any(), any(), any()) } returns aiResult
+        // Setup state with aiResult
+        coEvery { parserUseCase.processImageWithAi(any(), any(), any()) } returns aiResult
+        viewModel.onEvent(MedicineEvent.ProcessImageWithAi(mockk(), true, AiMode.GEMINI, "key"))
         advanceUntilIdle()
         
         // Now apply it

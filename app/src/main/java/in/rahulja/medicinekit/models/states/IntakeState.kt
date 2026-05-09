@@ -8,7 +8,6 @@ import `in`.rahulja.medicinekit.R
 import `in`.rahulja.medicinekit.data.model.IntakeAmountTime
 import `in`.rahulja.medicinekit.data.model.MedicineIntake
 import `in`.rahulja.medicinekit.utils.BLANK
-import `in`.rahulja.medicinekit.utils.di.Preferences
 import `in`.rahulja.medicinekit.utils.enums.IntakeExtra
 import `in`.rahulja.medicinekit.utils.enums.Interval
 import `in`.rahulja.medicinekit.utils.enums.Period
@@ -59,5 +58,5 @@ data class IntakeState(
     val showDialogDescription: Boolean = false,
     val showDialogDelete: Boolean = false,
     val showDialogDataLoss: Boolean = false,
-    val isFirstLaunch: Boolean = Preferences.isFirstLaunch
-)
+    val isFirstLaunch: Boolean = false
+    )

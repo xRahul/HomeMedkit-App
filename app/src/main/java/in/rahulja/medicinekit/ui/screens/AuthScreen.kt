@@ -57,11 +57,14 @@ import `in`.rahulja.medicinekit.network.Network
 import `in`.rahulja.medicinekit.ui.elements.IconButton
 import `in`.rahulja.medicinekit.ui.elements.NavigationIcon
 import `in`.rahulja.medicinekit.ui.elements.VectorIcon
-import `in`.rahulja.medicinekit.utils.di.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import org.koin.compose.koinInject
 import `in`.rahulja.medicinekit.utils.enums.SyncMode
 
 @Composable
 fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
+
+    val preferences: AppPreferences = koinInject()
 
     @Composable
     fun LocalProviderButton(
@@ -143,7 +146,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.text_sync)) },
                 navigationIcon = { NavigationIcon(onBack) },
                 actions = {
-                    if (Preferences.token != null) {
+                    if (preferences.token != null) {
                         IconButton(
                             onClick = { model.showExitDialog = true },
                             content = { VectorIcon(R.drawable.vector_logout) }
@@ -229,7 +232,7 @@ fun AuthScreen(model: AuthViewModel, onBack: () -> Unit) {
 
             AuthStatus.Success -> {
                 val lastSync by model.lastSync.collectAsStateWithLifecycle()
-                val isYandex = model.state.collectAsStateWithLifecycle().value == AuthStatus.Success && `in`.rahulja.medicinekit.utils.di.Preferences.authIsYandex
+                val isYandex = model.state.collectAsStateWithLifecycle().value == AuthStatus.Success && preferences.authIsYandex
 
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,

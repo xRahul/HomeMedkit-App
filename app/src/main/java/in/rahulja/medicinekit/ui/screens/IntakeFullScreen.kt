@@ -72,9 +72,9 @@ fun IntakeFullScreen(medicineId: Long, takenId: Long, amount: Double, onBack: ((
     val database = MedicineDatabase.getInstance(context)
     val manager = NotificationManagerCompat.from(context)
 
-    val medicine = runBlocking { database.medicineDAO().getById(medicineId) } ?: return
-    val intake = runBlocking { database.takenDAO().getById(takenId) } ?: return
-    val image = runBlocking { database.medicineDAO().getMedicineImage(medicineId) }
+    val medicine = runBlocking { database.appDAO().getMedicineById(medicineId) } ?: return
+    val intake = runBlocking { database.appDAO().getTakenById(takenId) } ?: return
+    val image = runBlocking { database.appDAO().getMedicineImage(medicineId) }
 
     val flag = manager.activeNotifications.size > 1 && manager.activeNotifications
         .filter { it.packageName == context.packageName }
@@ -83,7 +83,7 @@ fun IntakeFullScreen(medicineId: Long, takenId: Long, amount: Double, onBack: ((
 
     fun onDismiss() {
         scope.launch {
-            database.takenDAO().setNotified(takenId)
+            database.appDAO().setNotified(takenId)
             manager.cancel(takenId.toInt())
             manager.cancel(Int.MAX_VALUE)
 
@@ -97,8 +97,8 @@ fun IntakeFullScreen(medicineId: Long, takenId: Long, amount: Double, onBack: ((
 
     fun onConfirm() {
         scope.launch {
-            database.takenDAO().setTaken(takenId, true, System.currentTimeMillis())
-            database.medicineDAO().intakeMedicine(medicineId, amount)
+            database.appDAO().setTaken(takenId, true, System.currentTimeMillis())
+            database.appDAO().intakeMedicine(medicineId, amount)
             onDismiss()
         }
     }
@@ -115,9 +115,9 @@ fun IntakeFullScreen(medicineId: Long, takenId: Long, amount: Double, onBack: ((
                     val amount = item.notification.extras.getDouble(BLANK)
 
                     manager.cancel(takenId.toInt())
-                    database.takenDAO().setNotified(takenId)
-                    database.takenDAO().setTaken(takenId, true, System.currentTimeMillis())
-                    database.medicineDAO().intakeMedicine(medicineId, amount)
+                    database.appDAO().setNotified(takenId)
+                    database.appDAO().setTaken(takenId, true, System.currentTimeMillis())
+                    database.appDAO().intakeMedicine(medicineId, amount)
                 }
 
             if (onBack != null) {

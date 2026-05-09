@@ -2,6 +2,7 @@
 
 package `in`.rahulja.medicinekit.ui.screens
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -38,16 +39,22 @@ import `in`.rahulja.medicinekit.models.events.MedicineEvent
 import `in`.rahulja.medicinekit.models.states.MedicineDialogState
 import `in`.rahulja.medicinekit.models.viewModels.MedicineViewModel
 import `in`.rahulja.medicinekit.ui.elements.CustomSnackbar
+import `in`.rahulja.medicinekit.ui.elements.IconButton
 import `in`.rahulja.medicinekit.ui.elements.NavigationIcon
 import `in`.rahulja.medicinekit.ui.elements.TopBarActions
 import `in`.rahulja.medicinekit.ui.elements.VectorIcon
 import `in`.rahulja.medicinekit.ui.screens.medicine.components.*
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import `in`.rahulja.medicinekit.utils.enums.AiMode
 import `in`.rahulja.medicinekit.utils.extensions.medicine
+import org.koin.compose.koinInject
+import java.io.File
 
 @Composable
 fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (Long) -> Unit) {
     val resources = LocalResources.current
     val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
     val filesDir = context.filesDir
 
     val scope = rememberCoroutineScope()
@@ -109,16 +116,15 @@ fun MedicineScreen(model: MedicineViewModel, onBack: () -> Unit, onGoToIntake: (
                     }
                 },
                 actions = {
-                    val useAi = `in`.rahulja.medicinekit.utils.di.Preferences.useAi
-                    val aiMode = `in`.rahulja.medicinekit.utils.di.Preferences.aiMode
-                    if (useAi && aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI && state.images.isNotEmpty() && state.adding) {
-                        `in`.rahulja.medicinekit.ui.elements.IconButton(onClick = {
+                    val useAi = preferences.useAi
+                    val aiMode = preferences.aiMode
+                    if (useAi && aiMode == AiMode.GEMINI && state.images.isNotEmpty() && state.adding) {
+                        IconButton(onClick = {
                             model.onEvent(MedicineEvent.ProcessImageWithAi(
-                                context,
-                                android.net.Uri.fromFile(java.io.File(context.filesDir, state.images.first())),
+                                Uri.fromFile(File(context.filesDir, state.images.first())),
                                 true,
-                                `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI,
-                                `in`.rahulja.medicinekit.utils.di.Preferences.geminiApiKey
+                                AiMode.GEMINI,
+                                preferences.geminiApiKey
                             ))
                         }) {
                             VectorIcon(R.drawable.vector_refresh, tint = MaterialTheme.colorScheme.primary)

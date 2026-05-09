@@ -12,10 +12,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import `in`.rahulja.medicinekit.data.dao.KitDAO
-import `in`.rahulja.medicinekit.data.dao.MedicineDAO
+import `in`.rahulja.medicinekit.data.dao.AppDAO
 import `in`.rahulja.medicinekit.data.dto.Image
+import `in`.rahulja.medicinekit.data.dto.Kit
 import `in`.rahulja.medicinekit.data.dto.MedicineKit
+import `in`.rahulja.medicinekit.data.repository.MedicineRepository
+import `in`.rahulja.medicinekit.domain.usecases.MedicineParserUseCase
 import `in`.rahulja.medicinekit.models.events.MedicineAction
 import `in`.rahulja.medicinekit.models.events.MedicineEvent
 import `in`.rahulja.medicinekit.models.events.Response
@@ -25,31 +27,29 @@ import `in`.rahulja.medicinekit.models.validation.Validation
 import `in`.rahulja.medicinekit.network.Network
 import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.Formatter
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.enums.DoseType
 import `in`.rahulja.medicinekit.utils.enums.DrugType
 import `in`.rahulja.medicinekit.utils.enums.ImageEditing
-import `in`.rahulja.medicinekit.utils.extensions.asMedicine
-import `in`.rahulja.medicinekit.utils.extensions.concat
-import `in`.rahulja.medicinekit.utils.extensions.toMedicine
-import `in`.rahulja.medicinekit.utils.extensions.toState
-import `in`.rahulja.medicinekit.utils.extensions.toggle
+import `in`.rahulja.medicinekit.utils.extensions.*
 import `in`.rahulja.medicinekit.utils.getMedicineImages
 import java.io.File
-import `in`.rahulja.medicinekit.data.dto.Kit
 
 class MedicineViewModel(
     private val id: Long,
     private val cis: String,
     private val duplicate: Boolean,
     private val openCamera: Boolean,
-    private val dao: MedicineDAO,
-    private val daoK: KitDAO
-) : BaseViewModel<MedicineState, MedicineEvent>() {
+    private val dao: AppDAO,
+    private val repository: MedicineRepository,
+    private val parserUseCase: MedicineParserUseCase,
+    private val preferences: AppPreferences
+) : BaseViewModel<MedicineState, MedicineEvent>(MedicineState()) {
 
     private val _action = Channel<MedicineAction>()
     val action = _action.receiveAsFlow()
 
-    val kits = daoK.getFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList<Kit>())
+    val kits = repository.getKitsFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList<Kit>())
 
     init {
         if (openCamera) {
@@ -57,11 +57,9 @@ class MedicineViewModel(
         }
     }
 
-    override fun initState() = MedicineState()
-
-    override fun loadData() {
+    internal override fun loadData() {
         viewModelScope.launch {
-            val medicine = dao.getById(id)
+            val medicine = dao.getMedicineById(id)
 
             if (medicine != null) {
                 val newState = withContext(Dispatchers.Default) { medicine.toState() }
@@ -89,29 +87,8 @@ class MedicineViewModel(
             val checkProductName = Validation.textNotEmpty(currentState.productName)
 
             if (checkProductName.successful) {
-                val id = dao.insert(currentState.toMedicine())
-
-                coroutineScope {
-                    val jobOne = launch {
-                        val kits = currentState.kits.map { MedicineKit(id, it.kitId) }
-
-                        daoK.pinKit(kits)
-                    }
-
-                    val jobTwo = launch {
-                        val images = currentState.images.mapIndexed { index, image ->
-                            Image(
-                                medicineId = id,
-                                position = index,
-                                image = image
-                            )
-                        }
-
-                        dao.updateImages(images)
-                    }
-
-                    joinAll(jobOne, jobTwo)
-                }
+                val kits = currentState.kits.map { it.kitId }
+                val id = repository.saveMedicine(currentState.toMedicine(), kits, currentState.images)
 
                 updateState {
                     it.copy(
@@ -145,19 +122,20 @@ class MedicineViewModel(
                                 medicineId = currentState.id,
                                 form = medicine.prodFormNormName,
                                 directory = dir,
-                                urls = response.model.imageUrls
+                                urls = response.model.imageUrls,
+                                preferences = preferences
                             )
                         }
 
                         if (currentState.id != 0L) {
                             coroutineScope {
-                                val jobOne = launch { dao.update(medicine) }
+                                val jobOne = launch { dao.updateMedicine(medicine) }
                                 val jobTow = launch { dao.updateImages(images.await()) }
 
                                 joinAll(jobOne, jobTow)
                             }
 
-                            dao.getById(id)?.let { medicineFull ->
+                            dao.getMedicineById(id)?.let { medicineFull ->
                                 updateState { medicineFull.toState() }
                             }
                         } else {
@@ -201,12 +179,13 @@ class MedicineViewModel(
                             medicineId = currentState.id,
                             form = currentState.prodFormNormName,
                             directory = dir,
-                            urls = response.model.imageUrls
+                            urls = response.model.imageUrls,
+                            preferences = preferences
                         )
 
                         dao.updateImages(images)
 
-                        dao.getById(id)?.let { medicine ->
+                        dao.getMedicineById(id)?.let { medicine ->
                             updateState { medicine.toState() }
                         }
                     }
@@ -228,22 +207,10 @@ class MedicineViewModel(
             val checkProductName = Validation.textNotEmpty(currentState.productName)
 
             if (checkProductName.successful) {
-                val kits = currentState.kits.map { MedicineKit(currentState.id, it.kitId) }
-                val images = currentState.images.mapIndexed { index, image ->
-                    Image(
-                        medicineId = currentState.id,
-                        position = index,
-                        image = image
-                    )
-                }
+                val kits = currentState.kits.map { it.kitId }
+                repository.updateMedicine(currentState.toMedicine(), kits, currentState.images)
 
-                daoK.deleteAll(currentState.id)
-                daoK.pinKit(kits)
-                dao.updateImages(images)
-
-                dao.update(currentState.toMedicine())
-
-                dao.getById(currentState.id)?.let { medicine ->
+                dao.getMedicineById(currentState.id)?.let { medicine ->
                     updateState { medicine.toState() }
                 }
             } else {
@@ -254,16 +221,7 @@ class MedicineViewModel(
 
     fun delete(dir: File) {
         viewModelScope.launch {
-            coroutineScope {
-                launch { dao.delete(currentState.toMedicine()) }
-                launch(Dispatchers.IO) {
-                    currentState.images.forEach {
-                        if (dao.getImageCount(it) == 0) {
-                            File(dir, it).delete()
-                        }
-                    }
-                }
-            }
+            repository.deleteMedicine(currentState.toMedicine(), currentState.images, dir)
 
             updateState { it.copy(dialogState = null) }
 
@@ -308,15 +266,7 @@ class MedicineViewModel(
                 updateState { it.copy(isLoading = true, loadingMessage = "Extracting text from all images...") }
                 viewModelScope.launch {
                     try {
-                        val texts = mutableListOf<String>()
-                        for (imageName in currentState.images) {
-                            val uri = android.net.Uri.fromFile(File(event.context.filesDir, imageName))
-                            val text = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithMLKit(event.context, uri)
-                            if (text.isNotBlank()) {
-                                texts.add(text.replace("\n", " ").trim())
-                            }
-                        }
-                        val combinedText = texts.joinToString("\n\n")
+                        val combinedText = parserUseCase.extractTextFromImages(currentState.images)
                         updateState { it.copy(extractedImagesText = combinedText, isLoading = false, loadingMessage = null) }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -330,11 +280,8 @@ class MedicineViewModel(
                 updateState { it.copy(isLoading = true, loadingMessage = "Analyzing extracted text with Gemini...") }
                 viewModelScope.launch {
                     try {
-                        val result = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithGemini(
-                            context = event.context,
-                            imageUri = null,
+                        val result = parserUseCase.analyzeTextWithGemini(
                             apiKey = event.apiKey,
-                            useImage = false,
                             extractedText = currentState.extractedImagesText
                         )
                         if (result != null) {
@@ -362,14 +309,9 @@ class MedicineViewModel(
                 updateState { it.copy(isLoading = false, loadingMessage = "Extracting text from image...", dialogState = MedicineDialogState.Loading) }
                 viewModelScope.launch {
                     try {
-                        val extractedText = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithMLKit(event.context, event.uri)
                         if (event.useAi) {
-                            if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT) {
-                                val cleanedText = extractedText.replace("\n", " ").trim()
-                                val result = `in`.rahulja.medicinekit.utils.AiMedicineResult(
-                                    name = cleanedText.take(50),
-                                    comment = cleanedText
-                                )
+                            val result = parserUseCase.processImageWithAi(event.uri, event.apiKey, event.aiMode)
+                            if (result != null) {
                                 updateState {
                                     it.copy(
                                         aiResult = result,
@@ -378,28 +320,9 @@ class MedicineViewModel(
                                         dialogState = MedicineDialogState.AiReview
                                     )
                                 }
-                            } else if (event.aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI) {
-                                updateState { it.copy(loadingMessage = "Searching knowledge base & structuring data...") }
-                                val result = `in`.rahulja.medicinekit.utils.AiMedicineParser.parseWithGemini(
-                                    context = event.context,
-                                    imageUri = event.uri,
-                                    apiKey = event.apiKey,
-                                    useImage = true,
-                                    extractedText = extractedText
-                                )
-                                if (result != null) {
-                                    updateState {
-                                        it.copy(
-                                            aiResult = result,
-                                            isLoading = false,
-                                            loadingMessage = null,
-                                            dialogState = MedicineDialogState.AiReview
-                                        )
-                                    }
-                                } else {
-                                    updateState { it.copy(isLoading = false, loadingMessage = null, dialogState = MedicineDialogState.PictureGrid) }
-                                    _action.send(MedicineAction.ShowSnackbar.OnShowError())
-                                }
+                            } else {
+                                updateState { it.copy(isLoading = false, loadingMessage = null, dialogState = MedicineDialogState.PictureGrid) }
+                                _action.send(MedicineAction.ShowSnackbar.OnShowError())
                             }
                         } else {
                             updateState { it.copy(isLoading = false, loadingMessage = null, dialogState = MedicineDialogState.PictureGrid) }
@@ -516,13 +439,13 @@ class MedicineViewModel(
             MedicineEvent.MakeDuplicate -> viewModelScope.launch {
                 try {
                     val duplicate = currentState.toMedicine().copy(id = 0L)
-                    val id = dao.insert(duplicate)
+                    val id = dao.insertMedicine(duplicate)
 
                     coroutineScope {
                         launch {
                             val kits = currentState.kits.map { MedicineKit(id, it.kitId) }
 
-                            daoK.pinKit(kits)
+                            dao.pinKit(kits)
                         }
 
                         launch {

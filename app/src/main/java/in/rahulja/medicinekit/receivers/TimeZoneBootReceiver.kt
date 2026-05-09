@@ -6,7 +6,7 @@ import android.content.Intent
 import `in`.rahulja.medicinekit.data.MedicineDatabase
 import `in`.rahulja.medicinekit.data.dto.Alarm
 import `in`.rahulja.medicinekit.utils.Formatter
-import `in`.rahulja.medicinekit.utils.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.extensions.goAsync
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -17,19 +17,20 @@ import java.time.ZonedDateTime
 
 class TimeZoneBootReceiver : BroadcastReceiver(), KoinComponent {
     private val database: MedicineDatabase by inject()
-    private val preferences: Preferences by inject()
+    private val preferences: AppPreferences by inject()
     private val alarmSetter: AlarmSetter by inject()
 
     override fun onReceive(context: Context, intent: Intent) = goAsync {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_TIMEZONE_CHANGED || intent.action == Intent.ACTION_TIME_CHANGED) {
             alarmSetter.cancelAll()
+            val dao = database.appDAO()
 
             if (preferences.autoIntakeReschedule && (intent.action == Intent.ACTION_TIMEZONE_CHANGED || intent.action == Intent.ACTION_TIME_CHANGED)) {
                 val current = ZonedDateTime.now()
-                val intakes = database.intakeDAO().getAll()
+                val intakes = dao.getAllIntakesList()
 
                 for (item in intakes) {
-                    val fullIntake = database.intakeDAO().getById(item.intakeId) ?: continue
+                    val fullIntake = dao.getIntakeById(item.intakeId) ?: continue
 
                     if (fullIntake.pickedTime.isEmpty()) continue
 
@@ -49,7 +50,7 @@ class TimeZoneBootReceiver : BroadcastReceiver(), KoinComponent {
 
                         val scheduled = mutableListOf<Alarm>()
 
-                        val takenTriggers = database.takenDAO().getTakenTriggers(fullIntake.intakeId).toSet()
+                        val takenTriggers = dao.getTakenTriggers(fullIntake.intakeId).toSet()
 
                         val missedDays = if (fullIntake.interval > 0) fullIntake.interval.toLong() else 1L
                         val windowMillis = current.minusDays(missedDays).toInstant().toEpochMilli()
@@ -94,15 +95,15 @@ class TimeZoneBootReceiver : BroadcastReceiver(), KoinComponent {
                             }
                         }
 
-                        database.alarmDAO().deleteByIntakeId(fullIntake.intakeId)
+                        dao.deleteAlarmsByIntakeId(fullIntake.intakeId)
 
                         if (scheduled.isNotEmpty()) {
-                            database.alarmDAO().insert(scheduled.sortedBy(Alarm::trigger))
+                            dao.upsertAllAlarms(scheduled.sortedBy(Alarm::trigger))
                         }
 
                         alarmSetter.setPreAlarm(fullIntake.intakeId)
                     } else {
-                        database.alarmDAO().deleteByIntakeId(fullIntake.intakeId)
+                        dao.deleteAlarmsByIntakeId(fullIntake.intakeId)
                     }
                 }
             }
@@ -110,7 +111,7 @@ class TimeZoneBootReceiver : BroadcastReceiver(), KoinComponent {
             alarmSetter.resetAll()
 
             if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-                database.takenDAO().setNotified()
+                dao.setAllNotified()
             }
 
             if (preferences.checkExpiration) {

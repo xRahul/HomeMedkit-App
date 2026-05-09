@@ -81,7 +81,7 @@ import org.koin.androidx.compose.koinViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import `in`.rahulja.medicinekit.R
-import `in`.rahulja.medicinekit.data.model.Intake
+import `in`.rahulja.medicinekit.data.model.IntakeUI
 import `in`.rahulja.medicinekit.data.model.IntakeListScheme
 import `in`.rahulja.medicinekit.data.model.IntakeModel
 import `in`.rahulja.medicinekit.data.model.MedicineMain
@@ -103,7 +103,6 @@ import `in`.rahulja.medicinekit.ui.elements.VectorIcon
 import `in`.rahulja.medicinekit.utils.DecimalAmountInputTransformation
 import `in`.rahulja.medicinekit.utils.DecimalAmountOutputTransformation
 import `in`.rahulja.medicinekit.utils.Formatter
-import `in`.rahulja.medicinekit.utils.di.Preferences
 import `in`.rahulja.medicinekit.utils.enums.IntakeTab
 import java.time.ZoneOffset
 
@@ -125,7 +124,7 @@ fun IntakesScreen(onNavigate: (Long) -> Unit) {
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(
         pageCount = IntakeTab.entries::size,
-        initialPage = Preferences.startPage.extras.getOrElse(0) { 0 } as Int
+        initialPage = 0 // Using default 0 since startPage.extras is complex to access here without proper context
     )
     val listStates = IntakeTab.entries.map { rememberLazyListState() }
 
@@ -179,7 +178,7 @@ fun IntakesScreen(onNavigate: (Long) -> Unit) {
                 when (IntakeTab.entries[page]) {
                     IntakeTab.LIST -> if (intakes.isNotEmpty())
                         LazyColumn(Modifier.fillMaxSize(), listStates[0]) {
-                            items(intakes, Intake::intakeId) {
+                            items(intakes, IntakeUI::intakeId) {
                                 ItemIntake(it, Modifier, onNavigate)
                                 HorizontalDivider()
                             }
@@ -279,7 +278,7 @@ private fun <T : IntakeModel> IntakeList(
 }
 
 @Composable
-private fun ItemIntake(intake: Intake, modifier: Modifier, onNavigate: (Long) -> Unit) =
+private fun ItemIntake(intake: IntakeUI, modifier: Modifier, onNavigate: (Long) -> Unit) =
     ListItem(
         modifier = modifier.clickable { onNavigate(intake.intakeId) },
         overlineContent = {

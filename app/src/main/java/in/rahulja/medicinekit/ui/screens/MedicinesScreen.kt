@@ -72,14 +72,16 @@ import `in`.rahulja.medicinekit.ui.elements.ScaffoldSearchBar
 import `in`.rahulja.medicinekit.ui.elements.TextDate
 import `in`.rahulja.medicinekit.ui.elements.VectorIcon
 import `in`.rahulja.medicinekit.ui.navigation.Screen
-import `in`.rahulja.medicinekit.utils.di.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.enums.MedicineListView
 import `in`.rahulja.medicinekit.utils.enums.Sorting
 import `in`.rahulja.medicinekit.utils.extensions.drawHorizontalDivider
+import org.koin.compose.koinInject
 
 @Composable
 fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Screen) -> Unit) {
     val activity = LocalActivity.current as? ComponentActivity
+    val preferences: AppPreferences = koinInject()
 
     val state by model.state.collectAsStateWithLifecycle()
     val medicines by model.medicines.collectAsStateWithLifecycle()
@@ -286,7 +288,7 @@ fun MedicinesScreen(model: MedicinesViewModel = koinViewModel(), onNavigate: (Sc
             itemFilterEmpty = { ItemFilterEmptyMedicines(state.hideEmpty, model::hideEmpty) }
         )
 
-        state.showExit -> if (!Preferences.confirmExit) activity?.finishAndRemoveTask()
+        state.showExit -> if (!preferences.confirmExit) activity?.finishAndRemoveTask()
         else activity?.let { DialogExit(model::showExit, it::finishAndRemoveTask) }
     }
 }

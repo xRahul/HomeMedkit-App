@@ -23,10 +23,10 @@ class ActionReceiver : BroadcastReceiver(), KoinComponent {
         val amount = intent.getDoubleExtra(BLANK, 0.0)
 
         NotificationManagerCompat.from(context).cancel(takenId.toInt())
-        database.takenDAO().setNotified(takenId)
+        database.appDAO().setNotified(takenId)
         if (intent.action == TYPE) {
-            database.takenDAO().setTaken(takenId, true, System.currentTimeMillis())
-            database.medicineDAO().intakeMedicine(medicineId, amount)
+            database.appDAO().setTaken(takenId, true, System.currentTimeMillis())
+            database.appDAO().intakeMedicine(medicineId, amount)
         }
     }
 }

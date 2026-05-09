@@ -5,9 +5,11 @@ import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.enums.SchemaType
 
+@Serializable
 @Entity(
     tableName = "intakes",
     foreignKeys = [

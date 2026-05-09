@@ -91,12 +91,15 @@ import `in`.rahulja.medicinekit.ui.elements.IconButton
 import `in`.rahulja.medicinekit.ui.elements.MedicineImage
 import `in`.rahulja.medicinekit.ui.elements.VectorIcon
 import `in`.rahulja.medicinekit.ui.screens.CameraPreview
+import `in`.rahulja.medicinekit.utils.AiMedicineResult
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.camera.CameraConfig
 import `in`.rahulja.medicinekit.utils.camera.ImageCompressor
 import `in`.rahulja.medicinekit.utils.camera.rememberCameraConfig
 import `in`.rahulja.medicinekit.utils.enums.DrugType
 import `in`.rahulja.medicinekit.utils.enums.ImageEditing
 import `in`.rahulja.medicinekit.utils.permissions.rememberPermissionState
+import org.koin.compose.koinInject
 import java.io.File
 
 @Composable
@@ -178,7 +181,7 @@ fun MedicineDialogs(
 
 @Composable
 fun AiReviewDialog(
-    result: `in`.rahulja.medicinekit.utils.AiMedicineResult?,
+    result: AiMedicineResult?,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -350,7 +353,8 @@ fun IconPicker(isEnabled: (DrugType) -> Boolean, onDismiss: () -> Unit, onPick: 
 
 @Composable
 fun CameraPhotoPreview(scope: CoroutineScope, event: (MedicineEvent) -> Unit) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
     val controller = rememberCameraConfig(CameraConfig.UseCases.IMAGE_CAPTURE)
 
     Box {
@@ -382,15 +386,14 @@ fun CameraPhotoPreview(scope: CoroutineScope, event: (MedicineEvent) -> Unit) {
                         }
 
                         event(MedicineEvent.SetImage(image))
-                        val useAi = `in`.rahulja.medicinekit.utils.di.Preferences.useAi
+                        val useAi = preferences.useAi
                         if (useAi && image != null) {
                             event(
                                 MedicineEvent.ProcessImageWithAi(
-                                    context = context,
                                     uri = android.net.Uri.fromFile(java.io.File(context.filesDir, image)),
                                     useAi = useAi,
-                                    aiMode = `in`.rahulja.medicinekit.utils.di.Preferences.aiMode,
-                                    apiKey = `in`.rahulja.medicinekit.utils.di.Preferences.geminiApiKey
+                                    aiMode = preferences.aiMode,
+                                    apiKey = preferences.geminiApiKey
                                 )
                             )
                         }

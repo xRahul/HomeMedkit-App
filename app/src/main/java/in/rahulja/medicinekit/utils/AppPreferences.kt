@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.Flow
 import `in`.rahulja.medicinekit.network.models.auth.Token
-import `in`.rahulja.medicinekit.utils.di.AlarmManager
 import `in`.rahulja.medicinekit.utils.enums.AiMode
 import `in`.rahulja.medicinekit.utils.enums.MedicineListView
 import `in`.rahulja.medicinekit.utils.enums.Page
@@ -15,7 +14,7 @@ import `in`.rahulja.medicinekit.utils.extensions.getEnumFlow
 import `in`.rahulja.medicinekit.utils.extensions.getFlow
 import `in`.rahulja.medicinekit.utils.extensions.putEnum
 
-class Preferences internal constructor(context: Context) {
+class AppPreferences internal constructor(context: Context) {
     private val preferences = context.getSharedPreferences("${context.packageName}_preferences", Context.MODE_PRIVATE)
 
     val kitsFilter: Set<String>?
@@ -146,9 +145,8 @@ class Preferences internal constructor(context: Context) {
         putStringSet(KEY_KITS_FILTER, kitsId)
     }
 
-    fun setCheckExpDate(check: Boolean) {
-        preferences.edit { putBoolean(KEY_CHECK_EXP_DATE, check) }
-        AlarmManager.checkExpiration(check)
+    fun setCheckExpDate(check: Boolean) = preferences.edit {
+        putBoolean(KEY_CHECK_EXP_DATE, check)
     }
 
     fun setLanguage(locale: String) = preferences.edit { putString(KEY_LANGUAGE, locale) }
@@ -190,9 +188,9 @@ class Preferences internal constructor(context: Context) {
 
     companion object {
         @Volatile
-        private var INSTANCE: Preferences? = null
+        private var INSTANCE: AppPreferences? = null
 
         fun getInstance(context: Context) =
-            INSTANCE ?: synchronized(this) { Preferences(context) }.also { INSTANCE = it }
+            INSTANCE ?: synchronized(this) { AppPreferences(context) }.also { INSTANCE = it }
     }
 }

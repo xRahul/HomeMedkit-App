@@ -32,10 +32,10 @@ class ActionGroupReceiver : BroadcastReceiver(), KoinComponent {
                 val amount = item.notification.extras.getDouble(BLANK)
 
                 manager.cancel(takenId.toInt())
-                database.takenDAO().setNotified(takenId)
+                database.appDAO().setNotified(takenId)
                 if (intent.action == TYPE) {
-                    database.takenDAO().setTaken(takenId, true, System.currentTimeMillis())
-                    database.medicineDAO().intakeMedicine(medicineId, amount)
+                    database.appDAO().setTaken(takenId, true, System.currentTimeMillis())
+                    database.appDAO().intakeMedicine(medicineId, amount)
                 }
             }
 

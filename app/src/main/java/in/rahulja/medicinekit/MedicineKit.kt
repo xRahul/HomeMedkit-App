@@ -19,6 +19,10 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
 import `in`.rahulja.medicinekit.di.appModule
+import `in`.rahulja.medicinekit.di.databaseModule
+import `in`.rahulja.medicinekit.di.domainModule
+import `in`.rahulja.medicinekit.di.viewModelModule
+import `in`.rahulja.medicinekit.di.workerModule
 import `in`.rahulja.medicinekit.utils.CHANNEL_ID_EXP
 import `in`.rahulja.medicinekit.utils.CHANNEL_ID_INTAKES
 import `in`.rahulja.medicinekit.utils.CHANNEL_ID_PRE
@@ -35,7 +39,13 @@ class MedicineKit : Application(), SingletonImageLoader.Factory {
             androidLogger()
             androidContext(this@MedicineKit)
             workManagerFactory()
-            modules(appModule)
+            modules(
+                appModule,
+                databaseModule,
+                domainModule,
+                viewModelModule,
+                workerModule
+            )
         }
 
         isDefaultPreferenceFlowAndroidLongSupportEnabled = true

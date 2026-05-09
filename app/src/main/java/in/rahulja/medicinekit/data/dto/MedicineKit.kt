@@ -3,7 +3,9 @@ package `in`.rahulja.medicinekit.data.dto
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(
     tableName = "medicines_kits",
     primaryKeys = ["medicineId", "kitId"],

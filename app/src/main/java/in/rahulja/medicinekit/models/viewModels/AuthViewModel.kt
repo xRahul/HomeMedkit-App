@@ -18,7 +18,7 @@ import `in`.rahulja.medicinekit.network.Network
 import `in`.rahulja.medicinekit.network.models.auth.Token
 import `in`.rahulja.medicinekit.utils.BLANK
 import `in`.rahulja.medicinekit.utils.Formatter
-import `in`.rahulja.medicinekit.utils.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.ResourceText
 import `in`.rahulja.medicinekit.utils.WORK_AUTH_FIRST_TIME
 import `in`.rahulja.medicinekit.utils.enums.SyncMode
@@ -27,13 +27,12 @@ import `in`.rahulja.medicinekit.worker.WorkerManager
 
 class AuthViewModel(
     private val code: String?,
-    private val preferences: Preferences,
+    private val preferences: AppPreferences,
     private val workManager: WorkManager
-) : BaseViewModel<AuthStatus, Unit>() {
+) : BaseViewModel<AuthStatus, Unit>(AuthStatus.Loading) {
     override fun onEvent(event: Unit) = Unit
-    override fun initState() = AuthStatus.Loading
 
-    override fun loadData() {
+    internal override fun loadData() {
         when {
             preferences.token != null -> {
                 if (preferences.authIsYandex) {
@@ -121,7 +120,7 @@ class AuthViewModel(
             val isSuccess = if (preferences.authIsYandex) {
                 Network.Yandex.checkConnection()
             } else {
-                `in`.rahulja.medicinekit.network.GoogleDriveApi.isReady()
+                false
             }
 
             if (isSuccess) {

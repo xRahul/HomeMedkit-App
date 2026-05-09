@@ -12,13 +12,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import `in`.rahulja.medicinekit.ui.navigation.Screen
-import `in`.rahulja.medicinekit.utils.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.enums.Page
 
 class MainViewModelTest {
 
     private val workManager: WorkManager = mockk()
-    private val preferences: Preferences = mockk()
+    private val preferences: AppPreferences = mockk()
     private lateinit var viewModel: MainViewModel
 
     @BeforeEach

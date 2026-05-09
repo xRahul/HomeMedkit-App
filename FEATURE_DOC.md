@@ -1,52 +1,43 @@
-# MedicineKit Exhaustive Technical Specification
+# MedicineKit Comprehensive Technical Guide
 
-## 1. Executive Summary
-MedicineKit is a reactive Android application utilizing Jetpack Compose for the UI layer, Room (SQLite) for high-performance persistent storage, and WorkManager/AlarmManager for intelligent background task management. It employs a clean MVVM architecture, where ViewModels serve as the single source of truth for UI state, driving reactive updates across the application.
+This guide provides an itemized breakdown of the core complex features within the MedicineKit application.
 
-## 2. Package-Level Technical Breakdown
+## 1. AI-Powered Medicine Parsing (The Pipeline)
+The app automates data entry by converting physical medicine packaging into structured JSON data.
 
-### 2.1 Persistence Layer (`in.rahulja.medicinekit.data`)
-- **Purpose**: Defines the data schema, storage entities, and access patterns (CRUD).
-- **Key Components**:
-    - `MedicineDatabase`: The Room database entry point; defines migration logic and accessors for all DAOs.
-    - `DAOs (Data Access Objects)`: Interfaces (e.g., `MedicineDAO`, `AlarmDAO`) providing type-safe SQL queries. Supports both asynchronous (suspend) operations and reactive stream processing (Flow).
-    - **Data Models**: Domain models and DTOs (Data Transfer Objects) that map directly to the SQLite schema, facilitating complex joins (e.g., `IntakeFull`, `MedicineMain`) to support rich UI views.
-- **Data Flow**: Entities -> DAO -> ViewModels (using Flow/Suspend).
+- **Trigger**: User initiates the "Scan/Add by Image" feature from the UI (`MedicineDialogs.kt`).
+- **Capture**: The `CameraPreview` component captures an image, which is processed in `MedicineViewModel`.
+- **Logic**:
+    1. **Local OCR (ML Kit)**: The `AiMedicineParser` first uses on-device ML Kit to extract raw text from the image.
+    2. **Remote AI Parsing (Gemini)**: If initial text is found, it sends the image and text to Gemini 1.5 Flash with a structured prompt.
+    3. **JSON Deserialization**: The Gemini response is parsed into an `AiMedicineResult` object.
+- **Completion**: The `MedicineViewModel` collects this result, prompts the user for verification, and saves the verified fields into the `Medicine` entity via the `MedicineDAO`.
 
-### 2.2 Domain & Logic Layer (`in.rahulja.medicinekit.models`)
-- **Purpose**: Encapsulates business logic, state management, and interaction handling.
-- **Key Components**:
-    - `viewModels`: The core processing hubs. Each screen has a corresponding ViewModel (e.g., `MedicineViewModel`) that consumes user events and exposes `StateFlow` to the Compose UI.
-    - `states`: Data classes representing the UI state at any given moment.
-    - `events`: Sealed classes defining valid user/system actions, keeping business logic centralized and testable.
-- **Feature Mapping**: Central to every interactive feature, from inventory management to intake logging.
+## 2. Alarm & Intake Scheduling System
+The app ensures timely medication compliance using a dual-stage notification mechanism.
 
-### 2.3 User Interface (`in.rahulja.medicinekit.ui`)
-- **Purpose**: Declaration of the visual tree using Jetpack Compose and Material 3.
-- **Key Components**:
-    - `screens`: Top-level composition functions mapped to specific application routes.
-    - `elements`: Reusable design components (buttons, text fields, custom scaffolds).
-    - `navigation`: Type-safe routing using a sealed `Screen` class, managing the application's backstack and transitions via `AppNavGraph.kt`.
-- **System Logic**: Collects state from ViewModels via `collectAsStateWithLifecycle` to ensure efficient UI updates synchronized with the Android lifecycle.
+- **Pre-Alarm Logic (30 mins before)**:
+    - `AlarmSetter.kt` schedules a `PreAlarmReceiver` exactly 30 minutes before the scheduled time.
+    - `PreAlarmReceiver.kt` wakes the system, creates a "pending" entry in the `IntakeTaken` table (to mark the intake as "in-progress"), and triggers the final `AlarmReceiver`.
+- **Final Notification**:
+    - `AlarmReceiver.kt` handles the actual system notification that alerts the user to take their medicine.
+- **Sync**: Both receivers are managed by the system `AlarmManager`, ensuring they function correctly even when the app is in the background or terminated.
 
-### 2.4 Scheduling & Background Processing (`in.rahulja.medicinekit.receivers` & `worker`)
-- **Purpose**: Manages time-sensitive user notifications and heavy, non-time-critical background synchronization.
-- **System Architecture**:
-    - `AlarmManager` (via `AlarmSetter`): Used for precise, time-triggered intake reminders.
-    - `BroadcastReceivers` (`AlarmReceiver`, `PreAlarmReceiver`): Handle system-level callbacks to display notifications or trigger application logic, even when the app is in the background.
-    - `WorkManager` (`SyncWorker`): Handles data persistence to external clouds (Google Drive/Yandex Disk). It runs periodically to ensure the application state remains synchronized.
+## 3. Data Synchronization (`SyncWorker`)
+The app utilizes `WorkManager` for asynchronous data synchronization with cloud services (Yandex Disk).
 
-### 2.5 Utilities & Integration (`in.rahulja.medicinekit.utils`)
-- **Purpose**: Cross-cutting concerns and external API/Library integrations.
-- **Key Integrations**:
-    - `AiMedicineParser`: Leverages ML Kit (local) and Gemini 1.5 Flash (cloud) for intelligent text recognition and structural parsing of medicine packaging.
-    - `DataManager`: Handles backup/restore logic, file management, and database export.
-    - `di`: Koin dependency injection configuration, ensuring singleton scoping for core services like Database and Preferences.
+- **Scope**: The current implementation synchronizes the `medicines` table and associated images. Note: History and Kits are NOT part of this sync.
+- **Workflow**:
+    - `SyncWorker.kt` runs as a periodic background task.
+    - **Serialization**: Converts the `medicines` database table into a `medicines.json` file.
+    - **Conflict Resolution**: It calculates the MD5 hash of local vs. remote versions and compares modification timestamps to decide whether to upload or download.
+    - **Image Sync**: Iterates through the `images/` directory, comparing MD5 hashes with remote images to perform an incremental sync.
 
-## 3. Core Technical Data Flow
-The application maintains data consistency through a unidirectional flow:
-1. **User Action**: Triggered in the UI (e.g., `MedicinesScreen`).
-2. **Event Dispatch**: Dispatched as an event to the `ViewModel` (e.g., `MedicineEvent`).
-3. **Domain Logic**: ViewModel modifies state or triggers DAO/Network calls.
-4. **Data Sync**: DB/DAO updates, triggering a new emission in the `StateFlow`.
-5. **UI Update**: Compose UI observes the new state and recomposes.
+## 4. Manual Backup & Restore (`DataManager`)
+Provides a manual method for users to migrate their entire application data across devices.
+
+- **Export**: `DataManager.kt` zips the active SQLite database files and the `images/` folder into a single archive file.
+- **Import**:
+    - **Validation**: Upon restoration, it cross-references the Room `identity_hash` to ensure the backup schema matches the current app's database schema.
+    - **Cleanup**: It clears existing data and cancels all pending alarms to prevent duplication or stale notifications.
+    - **Restart**: Triggers an application-wide restart to refresh all Koin-injected singletons with the newly imported database state.

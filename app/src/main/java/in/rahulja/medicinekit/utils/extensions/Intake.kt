@@ -8,7 +8,8 @@ import androidx.compose.ui.text.intl.Locale
 import `in`.rahulja.medicinekit.R
 import `in`.rahulja.medicinekit.R.string.intake_text_not_taken
 import `in`.rahulja.medicinekit.data.dto.IntakeTaken
-import `in`.rahulja.medicinekit.data.model.Intake
+import `in`.rahulja.medicinekit.data.dto.Intake as IntakeDto
+import `in`.rahulja.medicinekit.data.model.IntakeUI
 import `in`.rahulja.medicinekit.data.model.IntakeAmountTime
 import `in`.rahulja.medicinekit.data.model.IntakeFull
 import `in`.rahulja.medicinekit.data.model.IntakeList
@@ -75,7 +76,7 @@ fun IntakeFull.toState() = IntakeState(
     }
 )
 
-fun IntakeState.toIntake() = `in`.rahulja.medicinekit.data.dto.Intake(
+fun IntakeState.toIntake() = IntakeDto(
     intakeId = intakeId,
     medicineId = medicineId,
     interval = interval.toInt(),
@@ -91,7 +92,7 @@ fun IntakeState.toIntake() = `in`.rahulja.medicinekit.data.dto.Intake(
     cancellable = cancellable
 )
 
-fun IntakeList.toIntake(): Intake {
+fun IntakeList.toIntake(): IntakeUI {
     val timeText = if (time.size == 1) time.first()
     else time.map { LocalTime.parse(it, Formatter.FORMAT_H_MM) }
         .sorted()
@@ -118,7 +119,7 @@ fun IntakeList.toIntake(): Intake {
         }
     }
 
-    return Intake(
+    return IntakeUI(
         intakeId = intakeId,
         title = nameAlias.ifEmpty(::productName),
         image = image.firstOrNull().orEmpty(),

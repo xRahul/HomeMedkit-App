@@ -15,8 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import `in`.rahulja.medicinekit.utils.di.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.enums.Theme
+import org.koin.compose.koinInject
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -97,9 +98,10 @@ private val darkScheme = darkColorScheme(
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
     val activity = LocalActivity.current as? ComponentActivity ?: return
+    val preferences: AppPreferences = koinInject()
 
-    val darkState by Preferences.theme.collectAsStateWithLifecycle(Theme.SYSTEM)
-    val dynamicColor by Preferences.dynamicColors.collectAsStateWithLifecycle(false)
+    val darkState by preferences.theme.collectAsStateWithLifecycle(Theme.SYSTEM)
+    val dynamicColor by preferences.dynamicColors.collectAsStateWithLifecycle(false)
 
     val darkTheme = when (darkState) {
         Theme.LIGHT -> false

@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -74,17 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.koin.androidx.compose.koinViewModel
 import kotlinx.coroutines.launch
-import me.zhanghai.compose.preference.ListPreference
-import me.zhanghai.compose.preference.Preference
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.preference
-import me.zhanghai.compose.preference.preferenceCategory
-import me.zhanghai.compose.preference.switchPreference
-import me.zhanghai.compose.preference.textFieldPreference
-import me.zhanghai.compose.preference.twoTargetSwitchPreference
 import `in`.rahulja.medicinekit.R
 import `in`.rahulja.medicinekit.data.dto.Kit
 import `in`.rahulja.medicinekit.dialogs.DraggableItem
@@ -92,64 +83,29 @@ import `in`.rahulja.medicinekit.dialogs.dragContainer
 import `in`.rahulja.medicinekit.dialogs.rememberDragDropState
 import `in`.rahulja.medicinekit.models.events.SettingsEvent
 import `in`.rahulja.medicinekit.models.viewModels.SettingsViewModel
+import `in`.rahulja.medicinekit.receivers.AlarmSetter
 import `in`.rahulja.medicinekit.ui.elements.IconButton
 import `in`.rahulja.medicinekit.ui.elements.NavigationIcon
 import `in`.rahulja.medicinekit.ui.elements.VectorIcon
 import `in`.rahulja.medicinekit.ui.navigation.LocalBarVisibility
 import `in`.rahulja.medicinekit.ui.screens.permissions.PermissionsScreen
 import `in`.rahulja.medicinekit.ui.theme.isDynamicColorAvailable
-import `in`.rahulja.medicinekit.utils.ActionHandler
-import `in`.rahulja.medicinekit.utils.ActionResult
-import `in`.rahulja.medicinekit.utils.KEY_AI_MODE
-import `in`.rahulja.medicinekit.utils.KEY_AI_SETTINGS
-import `in`.rahulja.medicinekit.utils.KEY_APP_SYSTEM
-import `in`.rahulja.medicinekit.utils.KEY_APP_THEME
-import `in`.rahulja.medicinekit.utils.KEY_APP_VIEW
-import `in`.rahulja.medicinekit.utils.KEY_AUTO_CHANGE_INTAKE_WHEN_TIME_CHANGE
-import `in`.rahulja.medicinekit.utils.KEY_AUTO_SYNC_ENABLED
-import `in`.rahulja.medicinekit.utils.KEY_BASIC_SETTINGS
-import `in`.rahulja.medicinekit.utils.KEY_CHECK_EXP_DATE
-import `in`.rahulja.medicinekit.utils.KEY_CLEAR_CACHE
-import `in`.rahulja.medicinekit.utils.KEY_CONFIRM_EXIT
-import `in`.rahulja.medicinekit.utils.KEY_DOWNLOAD
-import `in`.rahulja.medicinekit.utils.KEY_DYNAMIC_COLOR
-import `in`.rahulja.medicinekit.utils.KEY_GEMINI_API_KEY
-import `in`.rahulja.medicinekit.utils.KEY_IMPORT_EXPORT
-import `in`.rahulja.medicinekit.utils.KEY_LANGUAGE
-import `in`.rahulja.medicinekit.utils.KEY_START_PAGE
-import `in`.rahulja.medicinekit.utils.KEY_USE_AI
-import `in`.rahulja.medicinekit.utils.KEY_USE_ALARM_CLOCK
-import `in`.rahulja.medicinekit.utils.KEY_USE_VIBRATION_SCAN
-import `in`.rahulja.medicinekit.utils.AppLocale
-import `in`.rahulja.medicinekit.utils.CLIENT_ID_YANDEX
-import `in`.rahulja.medicinekit.utils.DataManager
-import `in`.rahulja.medicinekit.utils.KEY_AUTOLAUNCH
-import `in`.rahulja.medicinekit.utils.KEY_FIXING
-import `in`.rahulja.medicinekit.utils.KEY_KITS
-import `in`.rahulja.medicinekit.utils.KEY_PERMISSIONS
-import `in`.rahulja.medicinekit.utils.di.AlarmManager
-import `in`.rahulja.medicinekit.utils.di.Preferences
+import `in`.rahulja.medicinekit.utils.*
+import `in`.rahulja.medicinekit.utils.enums.AiMode
 import `in`.rahulja.medicinekit.utils.enums.Page
 import `in`.rahulja.medicinekit.utils.enums.Sorting
 import `in`.rahulja.medicinekit.utils.enums.Theme
-import `in`.rahulja.medicinekit.utils.extensions.canScheduleExactAlarms
-import `in`.rahulja.medicinekit.utils.extensions.drawHorizontalDivider
-import `in`.rahulja.medicinekit.utils.extensions.getLanguageList
-import `in`.rahulja.medicinekit.utils.extensions.getLocalizedName
-import `in`.rahulja.medicinekit.utils.extensions.openAutoStartSettings
-import `in`.rahulja.medicinekit.utils.extensions.restartApplication
-import `in`.rahulja.medicinekit.utils.extensions.showToast
-import `in`.rahulja.medicinekit.utils.launcherExportDatabase
-import `in`.rahulja.medicinekit.utils.launcherExportImages
-import `in`.rahulja.medicinekit.utils.launcherExportAll
-import `in`.rahulja.medicinekit.utils.launcherImportDatabase
-import `in`.rahulja.medicinekit.utils.launcherImportImages
-import `in`.rahulja.medicinekit.utils.launcherImportAll
+import `in`.rahulja.medicinekit.utils.extensions.*
+import me.zhanghai.compose.preference.*
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.util.Locale
 
 @Composable
 fun SettingsScreen(onAuthClick: () -> Unit) {
     val context = LocalContext.current
+    val preferences: AppPreferences = koinInject()
+    val alarmManager: AlarmSetter = koinInject()
     val barVisibility = LocalBarVisibility.current
 
     val underlineColor = MaterialTheme.colorScheme.outlineVariant
@@ -188,7 +144,7 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
             item {
                 ListPreference(
                     value = startPage,
-                    onValueChange = Preferences::setStartPage,
+                    onValueChange = preferences::setStartPage,
                     values = Page.entries,
                     title = { Text(stringResource(R.string.preference_start_page)) },
                     summary = { Text(stringResource(startPage.title)) },
@@ -199,7 +155,7 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
             item {
                 ListPreference(
                     value = sorting,
-                    onValueChange = Preferences::setSortingType,
+                    onValueChange = model::setSortingType,
                     values = Sorting.entries,
                     title = { Text(stringResource(R.string.preference_sorting_type)) },
                     summary = { Text(stringResource(sorting.title)) },
@@ -231,7 +187,7 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
             item {
                 SwitchPreference(
                     value = checkExpiration,
-                    onValueChange = Preferences::setCheckExpDate,
+                    onValueChange = model::setCheckExpDate,
                     title = { Text(stringResource(R.string.preference_check_expiration_date)) },
                     summary = { Text(stringResource(if (checkExpiration) R.string.text_daily_at else R.string.text_off)) }
                 )
@@ -281,12 +237,12 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
                         Text(stringResource(aiMode.title))
                     },
                     onClick = {
-                        val newMode = if (aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT) `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI else `in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT
-                        Preferences.setAiMode(newMode)
+                        val newMode = if (aiMode == AiMode.ML_KIT) AiMode.GEMINI else AiMode.ML_KIT
+                        preferences.setAiMode(newMode)
                     }
                 )
 
-                if (aiMode == `in`.rahulja.medicinekit.utils.enums.AiMode.GEMINI) {
+                if (aiMode == AiMode.GEMINI) {
                     textFieldPreference(
                         key = KEY_GEMINI_API_KEY,
                         defaultValue = model.geminiApiKey,
@@ -313,7 +269,7 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
                     val localeList = remember { context.getLanguageList() }
                     val locale = LocalConfiguration.current.locales[0].toLanguageTag()
 
-                    var value by remember { mutableStateOf(Preferences.language ?: locale) }
+                    var value by remember { mutableStateOf(preferences.language ?: locale) }
 
                     ListPreference(
                         value = value,
@@ -338,7 +294,7 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
             item {
                 ListPreference(
                     value = theme,
-                    onValueChange = Preferences::setTheme,
+                    onValueChange = model::setTheme,
                     values = Theme.entries,
                     title = { Text(stringResource(R.string.preference_app_theme)) },
                     summary = { Text(stringResource(theme.title)) },
@@ -368,7 +324,7 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
                     key = KEY_AUTO_SYNC_ENABLED,
                     defaultValue = false,
                     onClick = { onAuthClick() },
-                    switchEnabled = { Preferences.token != null },
+                    switchEnabled = { preferences.token != null },
                     title = { Text(stringResource(R.string.text_sync)) },
                     summary = { enabled ->
                         Text(
@@ -439,7 +395,7 @@ fun SettingsScreen(onAuthClick: () -> Unit) {
 
     when {
         state.showExport -> DialogData(model::onDataAction) { model.onEvent(SettingsEvent.ShowExport) }
-        state.showFixing -> DialogFixingNotifications { model.onEvent(SettingsEvent.ShowFixing) }
+        state.showFixing -> DialogFixingNotifications(onBack = { model.onEvent(SettingsEvent.ShowFixing) }, alarmManager = alarmManager)
         state.showClearing -> DialogClearing(model::onDataAction) { model.onEvent(SettingsEvent.ShowClearing) }
     }
 }
@@ -658,13 +614,13 @@ private fun DialogData(onAction: ActionHandler, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun DialogFixingNotifications(onBack: () -> Unit) {
+private fun DialogFixingNotifications(onBack: () -> Unit, alarmManager: AlarmSetter) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     fun onFix() {
         scope.launch {
-            launch { AlarmManager.resetAll() }.join()
+            launch { alarmManager.resetAll() }.join()
             context.restartApplication()
         }
     }

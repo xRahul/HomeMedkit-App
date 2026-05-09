@@ -33,9 +33,9 @@ class AlarmReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) = goAsync {
         val takenId = intent.getLongExtra(ALARM_ID, 0L)
 
-        val taken = database.takenDAO().getById(takenId) ?: return@goAsync
-        val intake = database.intakeDAO().getById(taken.intakeId) ?: return@goAsync
-        val medicine = database.medicineDAO().getById(intake.medicineId) ?: return@goAsync
+        val taken = database.appDAO().getTakenById(takenId) ?: return@goAsync
+        val intake = database.appDAO().getIntakeById(taken.intakeId) ?: return@goAsync
+        val medicine = database.appDAO().getMedicineById(intake.medicineId) ?: return@goAsync
 
         val flag = medicine.prodAmount >= taken.amount
 

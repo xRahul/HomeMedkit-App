@@ -18,14 +18,14 @@ import `in`.rahulja.medicinekit.ui.navigation.utils.DeepLinkPattern
 import `in`.rahulja.medicinekit.ui.navigation.utils.DeepLinkRequest
 import `in`.rahulja.medicinekit.ui.navigation.utils.KeyDecoder
 import `in`.rahulja.medicinekit.utils.DEEP_LINK_FULL_SCREEN
-import `in`.rahulja.medicinekit.utils.Preferences
+import `in`.rahulja.medicinekit.utils.AppPreferences
 import `in`.rahulja.medicinekit.utils.REDIRECT_URI_YANDEX
 import `in`.rahulja.medicinekit.utils.WORK_AUTO_SYNC
 import `in`.rahulja.medicinekit.worker.WorkerManager
 
 class MainViewModel(
     private val workManager: androidx.work.WorkManager,
-    private val preferences: Preferences
+    private val preferences: AppPreferences
 ) : ViewModel() {
     private val _snackbarEvent = Channel<WorkInfo.State>()
     val snackbarEvent = _snackbarEvent.receiveAsFlow()

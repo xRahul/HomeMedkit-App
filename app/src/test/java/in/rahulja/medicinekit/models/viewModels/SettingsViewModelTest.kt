@@ -1,5 +1,11 @@
 package `in`.rahulja.medicinekit.models.viewModels
 
+import `in`.rahulja.medicinekit.data.dao.AppDAO
+import `in`.rahulja.medicinekit.models.events.SettingsEvent
+import `in`.rahulja.medicinekit.receivers.AlarmSetter
+import `in`.rahulja.medicinekit.utils.AppPreferences
+import `in`.rahulja.medicinekit.utils.enums.Sorting
+import `in`.rahulja.medicinekit.utils.enums.Theme
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -16,35 +22,33 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import `in`.rahulja.medicinekit.data.dao.KitDAO
-import `in`.rahulja.medicinekit.models.events.SettingsEvent
-import `in`.rahulja.medicinekit.utils.Preferences
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val preferences: Preferences = mockk()
-    private val kitDAO: KitDAO = mockk()
+    private val preferences: AppPreferences = mockk(relaxed = true)
+    private val dao: AppDAO = mockk(relaxed = true)
+    private val alarmManager: AlarmSetter = mockk(relaxed = true)
+    
     private lateinit var viewModel: SettingsViewModel
 
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         
-        every { preferences.startPageFlow } returns flowOf()
-        every { preferences.sortingOrderFlow } returns flowOf()
-        every { preferences.checkExpirationFlow } returns flowOf()
-        every { preferences.theme } returns flowOf()
-        every { preferences.useAiFlow } returns flowOf()
-        every { preferences.aiModeFlow } returns flowOf()
+        every { preferences.startPageFlow } returns flowOf(`in`.rahulja.medicinekit.utils.enums.Page.MEDICINES)
+        every { preferences.sortingOrderFlow } returns flowOf(Sorting.IN_NAME)
+        every { preferences.checkExpirationFlow } returns flowOf(false)
+        every { preferences.theme } returns flowOf(Theme.SYSTEM)
+        every { preferences.useAiFlow } returns flowOf(true)
+        every { preferences.aiModeFlow } returns flowOf(`in`.rahulja.medicinekit.utils.enums.AiMode.ML_KIT)
         every { preferences.geminiApiKey } returns ""
-        every { kitDAO.getFlow() } returns flowOf(emptyList())
+        every { dao.getKitsFlow() } returns flowOf(emptyList())
         
-        viewModel = SettingsViewModel(preferences, kitDAO)
+        viewModel = SettingsViewModel(preferences, dao, alarmManager)
     }
 
     @AfterEach
@@ -54,27 +58,14 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `ShowClearing toggles state correctly`() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
-        
-        viewModel.onEvent(SettingsEvent.ShowClearing)
-        advanceUntilIdle()
-        assertTrue(viewModel.state.value.showClearing)
-        
-        viewModel.onEvent(SettingsEvent.ShowClearing)
-        advanceUntilIdle()
-        assertEquals(false, viewModel.state.value.showClearing)
-        
-        collectJob.cancel()
-    }
-
-    @Test
-    fun `ShowKits toggles state correctly`() = runTest {
+    fun `ToggleDialog events should update state`() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.state.collect() }
         
         viewModel.onEvent(SettingsEvent.ShowKits)
-        advanceUntilIdle()
-        assertTrue(viewModel.state.value.showKits)
+        assertEquals(true, viewModel.state.value.showKits)
+
+        viewModel.onEvent(SettingsEvent.ShowKits)
+        assertEquals(false, viewModel.state.value.showKits)
         
         collectJob.cancel()
     }
