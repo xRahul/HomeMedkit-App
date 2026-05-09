@@ -27,7 +27,7 @@ import `in`.rahulja.medicinekit.data.dto.MedicineKit
 import `in`.rahulja.medicinekit.utils.DATABASE_NAME
 
 @Database(
-    version = 37,
+    version = 38,
     entities = [
         Medicine::class,
         MedicineFTS::class,
@@ -66,7 +66,7 @@ abstract class MedicineDatabase : RoomDatabase() {
                 klass = MedicineDatabase::class.java,
                 name = DATABASE_NAME
             )
-                .addMigrations(MIGRATION_1_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_33_34, MIGRATION_34_35, MIGRATION_35_36, MIGRATION_36_37)
+                .addMigrations(MIGRATION_1_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_33_34, MIGRATION_34_35, MIGRATION_35_36, MIGRATION_36_37, MIGRATION_37_38)
                 .setQueryCoroutineContext(Dispatchers.IO)
                 .build()
                 .also { INSTANCE = it }
@@ -146,6 +146,15 @@ abstract class MedicineDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE medicines ADD COLUMN salts TEXT NOT NULL DEFAULT ''")
                 db.execSQL("DROP TABLE IF EXISTS medicines_fts")
                 db.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS `medicines_fts` USING FTS4(`productName` TEXT NOT NULL, `salts` TEXT NOT NULL, `nameAlias` TEXT NOT NULL, `prodFormNormName` TEXT NOT NULL, `structure` TEXT NOT NULL, `phKinetics` TEXT NOT NULL, `comment` TEXT NOT NULL, content=`medicines`, prefix=`1,2,3`, tokenize=unicode61)")
+                db.execSQL("INSERT INTO medicines_fts(medicines_fts) VALUES('rebuild')")
+            }
+        }
+
+        private val MIGRATION_37_38 = object : Migration(37, 38) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medicines ADD COLUMN extractedImagesText TEXT NOT NULL DEFAULT ''")
+                db.execSQL("DROP TABLE IF EXISTS medicines_fts")
+                db.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS `medicines_fts` USING FTS4(`productName` TEXT NOT NULL, `salts` TEXT NOT NULL, `nameAlias` TEXT NOT NULL, `prodFormNormName` TEXT NOT NULL, `structure` TEXT NOT NULL, `phKinetics` TEXT NOT NULL, `comment` TEXT NOT NULL, `extractedImagesText` TEXT NOT NULL, content=`medicines`, prefix=`1,2,3`, tokenize=unicode61)")
                 db.execSQL("INSERT INTO medicines_fts(medicines_fts) VALUES('rebuild')")
             }
         }

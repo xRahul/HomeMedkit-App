@@ -28,6 +28,7 @@ data class Medicine(
     val recommendations: String = BLANK,
     val storageConditions: String = BLANK,
     val comment: String = BLANK,
+    val extractedImagesText: String = BLANK,
     val scanned: Boolean = false,
     val verified: Boolean = false
 )
