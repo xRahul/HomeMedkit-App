@@ -30,7 +30,12 @@ import `in`.rahulja.medicinekit.utils.coil.IconMapper
 import `in`.rahulja.medicinekit.utils.extensions.createNotificationChannel
 
 
-class MedicineKit : Application(), SingletonImageLoader.Factory {
+import androidx.work.Configuration
+
+class MedicineKit : Application(), SingletonImageLoader.Factory, Configuration.Provider {
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().build()
 
     override fun onCreate() {
         super.onCreate()
