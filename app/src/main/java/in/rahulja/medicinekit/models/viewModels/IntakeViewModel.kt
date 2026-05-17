@@ -116,7 +116,7 @@ class IntakeViewModel(
                         IntakeTime(
                             intakeId = intakeId,
                             time = pickedTime.time,
-                            amount = pickedTime.amount.toDouble()
+                            amount = pickedTime.amount.toDoubleOrNull() ?: 0.0
                         )
                     )
 
@@ -126,7 +126,7 @@ class IntakeViewModel(
                                 Alarm(
                                     intakeId = intakeId,
                                     trigger = initial.toInstant().toEpochMilli(),
-                                    amount = pickedTime.amount.toDouble(),
+                                    amount = pickedTime.amount.toDoubleOrNull() ?: 0.0,
                                     preAlarm = currentState.preAlarm
                                 )
                             )
@@ -201,7 +201,7 @@ class IntakeViewModel(
                             IntakeTime(
                                 intakeId = currentState.intakeId,
                                 time = pickedTime.time,
-                                amount = pickedTime.amount.toDouble()
+                                amount = pickedTime.amount.toDoubleOrNull() ?: 0.0
                             )
                         )
 
@@ -211,7 +211,7 @@ class IntakeViewModel(
                                     Alarm(
                                         intakeId = currentState.intakeId,
                                         trigger = initial.toInstant().toEpochMilli(),
-                                        amount = pickedTime.amount.toDouble(),
+                                        amount = pickedTime.amount.toDoubleOrNull() ?: 0.0,
                                         preAlarm = currentState.preAlarm
                                     )
                                 )

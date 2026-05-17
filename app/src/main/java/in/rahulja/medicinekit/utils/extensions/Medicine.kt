@@ -84,7 +84,7 @@ fun MedicineState.toMedicine() = Medicine(
     prodFormNormName = prodFormNormName,
     structure = structure,
     prodDNormName = prodDNormName,
-    prodAmount = prodAmount.ifEmpty { "0.0" }.toDouble(),
+    prodAmount = prodAmount.toDoubleOrNull() ?: 0.0,
     doseType = doseType,
     phKinetics = phKinetics,
     recommendations = recommendations,
@@ -106,7 +106,7 @@ private fun DrugsData.toMedicine() = Medicine(
     phKinetics = vidalData?.phKinetics.orEmpty().asHtml(),
     scanned = true,
     verified = true,
-    prodAmount = foiv.prodPack1Size?.let { it.toDouble() * (foiv.prodPack12?.toDoubleOrNull() ?: 1.0) } ?: 0.0
+    prodAmount = foiv.prodPack1Size?.let { (it.toDoubleOrNull() ?: 0.0) * (foiv.prodPack12?.toDoubleOrNull() ?: 1.0) } ?: 0.0
 )
 
 private fun BioData.toMedicine() = Medicine(
